@@ -1,2 +1,4 @@
 *.pyc
 .*.sw?
+packages
+src/openlets/openlets
