@@ -83,7 +83,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '%wsv64#n-m1bgs4@v!k_&7(yv5@f-yaht8hh1g84l(c0fp-uok'
+SECRET_KEY = 'jdD9wjwkdj2kndjadsjD(Dw9dj2kje23@{{@_0fSD-0@23[pDs'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -117,6 +117,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+	'openlets.openletsweb'
 )
 
 # A sample logging configuration. The only tangible logging
