@@ -3,6 +3,7 @@ from core.models import *
 
 
 admin.site.register(Person)
+admin.site.register(PersonBalance)
 admin.site.register(Balance)
 admin.site.register(Transaction)
 admin.site.register(Currency)

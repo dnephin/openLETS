@@ -1,18 +1,18 @@
 """
 Database Acess Layer
 """
-from openletsweb import models
+from core import models
 
 def get_balance(usera, userb):
-	"""Load a balance between two users. Eager loads the currency and users
-	associated with the balance.
+	"""Load a balance between two users. 
 	"""
-	return models.Person.objects.select_related(
-		'balances',
-		'balances__currency',
-		'balances__persons'
-	).filter(
-		balances__persons=userb,
-		id=usera
+	return (models.PersonBalance.objects
+		.select_related(
+			'balance'
+			'balance__persons'
+		)
+		.get(
+			person=usera,
+			balance__persons=userb
+		).balance
 	)
-	
