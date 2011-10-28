@@ -1,5 +1,5 @@
 from django.contrib import admin
-from openletsweb.models import * 
+from core.models import * 
 
 
 admin.site.register(Person)

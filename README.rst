@@ -10,6 +10,7 @@ created with the following goals:
 * openLETS should be easy and enjoyable to use on any standards compliant web browser, including those on mobile devices
 * openLETS should be transparent and easy to understand
 * openLETS visual interface should be easy to modify and customize
+* provide a json or xml export of all balances and transactions in the system, or per user, so users are free to move to another LETS system
 
 openLETS has the following function goals:
 
