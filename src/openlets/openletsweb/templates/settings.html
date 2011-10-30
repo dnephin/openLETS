@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block container %}
+
+  {% block sidebar %}
+  <div class="span4">
+    <div class="well">
+      <h5>Menu</h5>
+      <ul>
+        <li><a href="#newtransaction">New Transaction</a></li>
+      </ul>
+	</div>
+  </div>
+  {% endblock %}
+
+  <div class="span11">
+  {% block content %}
+  {% endblock %}
+  </div>
+{% endblock %}
+

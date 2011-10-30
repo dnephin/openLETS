@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block container %}
+  <div class="content">
+
+    <div class="row">
+  {% block sidebar %}
+  <div class="span4">
+    <div class="well">
+      <h5>Menu</h5>
+      <ul>
+        <li><a href="#newtransaction">New Transaction</a></li>
+        <li><a href="#recenttransactions">Recent Transactions</a></li>
+        <li><a href="#balances">Balances</a></li>
+        <li><a href="{% url settings %}">Manage Settings</a></li>
+      </ul>
+	</div>
+  </div>
+  {% endblock %}
+
+  <div class="span12">
+  {% block content %}
+
+  <div name="newtransaction">
+    <h3>New Transaction</h3>
+	{% if pending_trans_records %}
+	<h4>Pending Transactions</h4>
+
+    <table class="zebra-striped">
+	  <thead>
+	    <tr>
+		  <th>Type</th>
+		  <th>Person</th>
+		  <th>Amount</th>
+		  <th>Time</th>
+		  <th>Action</th>
+		</tr>
+	  </thead>
+	  <tbody>
+	    {% for record in pending_trans_records %}
+	    <tr>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+    </table>
+	{% endif %}
+
+	<h4>Register a new transaction</h4>
+	<form method="post" action="">
+		{% csrf_token %}
+		{{ new_transaction_form.as_p }}
+	</form>
+
+  </div>
+
+  <div name="recenttransactions">
+    <h3>Recent Transactions</h3>
+    <table class="zebra-striped">
+
+    </table>
+  </div>
+
+  {% endblock %}
+  </div>
+
+    </div>
+  </div>
+{% endblock %}
+

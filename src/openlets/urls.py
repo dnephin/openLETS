@@ -4,9 +4,11 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    url(r'^$', 'openletsweb.views.home', name='home'),
-    # url(r'^openlets/', include('openlets.foo.urls')),
+    url(r'', include('django.contrib.auth.urls')),
+    url(r'^$', 'openletsweb.views.index', name='index'),
+    url(r'^home$', 'openletsweb.views.home', name='home'),
+    url(r'^settings$', 'openletsweb.views.settings', name='settings'),
+
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),

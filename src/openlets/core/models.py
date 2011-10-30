@@ -48,6 +48,11 @@ class PersonBalance(m.Model):
 	balance = m.ForeignKey('Balance')
 	credited = m.BooleanField()
 
+	def __unicode__(self):
+		return "PersonBalance for %s and %s" % (
+			self.person,
+			self.balance
+		)
 
 class ExchangeRate(m.Model):
 	""" """
