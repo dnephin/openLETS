@@ -25,8 +25,12 @@ def home(request):
 		}
 	)
 
+	# TODO: link to any records for the user that may be for the same transaction
 	# Pending transaction records
 	context['pending_trans_records'] = db.get_pending_trans_for_user(request.user)
+
+	# Recent transactions, that may be confirmed
+	context['recent_trans_records'] = db.get_recent_trans_for_user(request.user)
 
 	return web.render_context(request, 'home.html', context=context)
 

@@ -25,10 +25,10 @@ def render_context(request, template, context=None, type='html', *args):
 	Supported types:
 		- html
 	"""
-	context_processors = [context_processor[arg] for arg in args]
+	use_processors = [context_processors[arg] for arg in args]
 	context = context or {}
 
-	context = RequestContext(request, context or {}, context_processors)
+	context = RequestContext(request, context or {}, use_processors)
 	return render_to_response(template, context_instance=context)
 	
 

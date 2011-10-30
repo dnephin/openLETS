@@ -1,3 +1,4 @@
+from decimal import Decimal
 import itertools
 
 from django.db import models as m
@@ -156,12 +157,18 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	time_created = m.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
-		return "Transaction Record %s from %s to %s at %s" % (
+		return "Transaction Record (by %s)  %s from %s to %s at %s" % (
+			self.person_owner,
 			self.value_repr,
 			self.provider,
 			self.receiver,
 			self.time_created.strftime(DATE_FMT)	
 		)
+
+	@property
+	def person_owner(self):
+		"""Returns the person who created this record."""
+		return self.provider if self.from_provider else self.receiver
 
 	def set_person(self, person):
 		"""
@@ -174,7 +181,7 @@ class TransactionRecord(CurrencyMixin, m.Model):
 
 
 class Currency(m.Model):
-	""" """
+	"""A currency that can be used for exchange."""
 	name = m.CharField(max_length=255)
 	description = m.TextField(blank=True)
 	decimal_places = m.IntegerField(default=0)
@@ -185,13 +192,13 @@ class Currency(m.Model):
 		return self.name
 
 	def value_of(self, value):
-		"""The float value of 'value' in this currency."""
+		"""The decimal value of 'value' in this currency."""
 		if not self.decimal_places:
-			return float(value)
-		return float(value) / (self.decimal_places * 10)
+			return Decimal(value)
+		return Decimal(value) / (10 ** self.decimal_places)
 
 	def value_repr(self, value):
-		return '%s %s' % (self.value_of(value), self)
+		return ('%%.%df %%s' % self.decimal_places) % (self.value_of(value), self)
 
 
 class Resolution(CurrencyMixin, m.Model):

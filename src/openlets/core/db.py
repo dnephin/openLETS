@@ -40,3 +40,9 @@ def get_pending_trans_for_user(user):
 		record.set_person(person)
 		yield record
 
+def get_recent_trans_for_user(user):
+	"""Get recent transaction records for the user.  These transaction records
+	may be confirmed.
+	"""
+	#return models.TransactionRecord.objects
+	return []
