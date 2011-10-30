@@ -20,6 +20,18 @@
   {% endblock %}
 
   <div class="span12">
+
+  {% block messages %}
+	{% if messages %}
+	  {% for message in messages %}
+	    <div class="alert-message {{ message.tags}}">
+			<a class="close" href="#">×</a>
+			<p>{{ message }}</p>
+		</div>
+	  {% endfor %}
+	{% endif %}
+  {% endblock %}
+
   {% block content %}
 
   <div name="newtransaction">
@@ -40,9 +52,11 @@
 	  <tbody>
 	    {% for record in pending_trans_records %}
 	    <tr>
-		  <td></td>
-		  <td></td>
-		  <td></td>
+		  <td>{{ record.from_provider }}</td>
+		  <td>{{ record.other_person }}</td>
+		  <td>{{ record.value_repr }}</td>
+		  <td>{{ record.transaction_time}}</td>
+		  <td>confirm edit cancel</td>
 		</tr>
 		{% endfor %}
 	  </tbody>

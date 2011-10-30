@@ -6,13 +6,33 @@ from django.db.models.signals import post_save
 
 DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
-currency_field = lambda: m.ForeignKey('Currency', related_name='+')
+currency_field = lambda **kwargs: m.ForeignKey('Currency', related_name='+', **kwargs)
+
+class CurrencyMixin(m.Model):
+	"""A MixIn for models with currency.  
+	
+	Adds a currency field and a value field.
+	Adds two properties for getting value.
+	"""
+	class Meta:
+		abstract = True
+
+	currency = currency_field()
+	value = m.IntegerField(default=0)
+
+	@property
+	def value_repr(self):
+		return self.currency.value_repr(self.value)
+
+	@property
+	def value_str(self):
+		return self.currency.value_of(self.value)
 
 
 class Person(m.Model):
 	""" """
-	user = m.OneToOneField(User, editable=False)
-	default_currency = currency_field()
+	user = m.OneToOneField(User)
+	default_currency = currency_field(null=True, blank=True)
 
 	def __unicode__(self):
 		return self.user.username 
@@ -25,16 +45,17 @@ class Person(m.Model):
 
 def create_person(sender, instance, created, **kwargs):
 	"""Create a person for a new user."""
-	if created:
+	try:
 		default_currency = Currency.objects.get(default=True)
-		Person.objects.create(
-			user=instance, 
-			default_currency=default_currency
-		)
+	except Currency.DoesNotExist:
+		default_currency = None
+	# Raw is set when using loaded (ex: loading test fixtures)
+	if created and not kwargs.get('raw'):
+		Person.objects.create(user=instance, default_currency=default_currency)
 post_save.connect(create_person, sender=User)
 
 
-class Balance(m.Model):
+class Balance(CurrencyMixin, m.Model):
 	"""A balance between two people. 
 	"""
 	persons = m.ManyToManyField(
@@ -43,8 +64,6 @@ class Balance(m.Model):
 		blank=True,
 		related_name='balances'
 	)
-	currency = currency_field()
-	value = m.IntegerField(default=0)
 	time_updated = m.DateTimeField(auto_now=True)
 
 	def __unicode__(self):
@@ -55,7 +74,7 @@ class Balance(m.Model):
 			else:
 				debted = pb.person
 		return "Balance of %s credited to %s, debt from %s" % (
-			self.currency.value_repr(self.value),
+			self.value_repr,
 			credited,
 			debted
 		)
@@ -111,14 +130,14 @@ class Transaction(m.Model):
 		if self.time_confirmed:
 			confirmed = self.time_confirmed.strftime(DATE_FMT)
 		return "Transaction of %s from %s to %s confirmed at %s" % (
-			self.provider_record.currency.value_repr(self.provider_record.value),
+			self.provider_record.value_repr,
 			self.provider_record.provider,
 			self.provider_record.receiver,
 			confirmed
 		)
 
 
-class TransactionRecord(m.Model):
+class TransactionRecord(CurrencyMixin, m.Model):
 	"""
 	A record of the transaction submitted by a user. A transaction is not
 	official until confirmed by both parties having submitted their own
@@ -132,19 +151,26 @@ class TransactionRecord(m.Model):
 		'Person', 
 		related_name='transaction_records_as_receiver'
 	)
-	currency = currency_field()
-	value = m.IntegerField()
 	from_provider = m.BooleanField()
 	transaction_time = m.DateTimeField()
 	time_created = m.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
 		return "Transaction Record %s from %s to %s at %s" % (
-			self.currency.value_repr(self.value),
+			self.value_repr,
 			self.provider,
 			self.receiver,
-			time_created.strftime(DATE_FMT)	
+			self.time_created.strftime(DATE_FMT)	
 		)
+
+	def set_person(self, person):
+		"""
+		Store `person` as person in the model, and the other person
+		as `other_person`. `person` is most likely the active user performing
+		a web request.
+		"""
+		self.other_person = self.receiver if self.provider == person else self.provider
+		self.person = person
 
 
 class Currency(m.Model):
@@ -152,7 +178,6 @@ class Currency(m.Model):
 	name = m.CharField(max_length=255)
 	description = m.TextField(blank=True)
 	decimal_places = m.IntegerField(default=0)
-	creator = m.ForeignKey(Person, null=True, blank=True)
 	default = m.BooleanField(default=False)
 	time_created = m.DateTimeField(auto_now_add=True)
 
@@ -169,7 +194,7 @@ class Currency(m.Model):
 		return '%s %s' % (self.value_of(value), self)
 
 
-class Resolution(m.Model):
+class Resolution(CurrencyMixin, m.Model):
 	""" """
 	provider = m.ForeignKey(
 		'Person', 
@@ -179,8 +204,6 @@ class Resolution(m.Model):
 		'Person', 
 		related_name='resolutions_as_receiver'
 	)
-	currency = currency_field()
-	value = m.IntegerField()
 	time_confirmed = m.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
@@ -188,7 +211,7 @@ class Resolution(m.Model):
 		if self.time_confirmed:
 			confirmed = self.time_confirmed.strftime(DATE_FMT)
 		return "Resolution of %s from %s to %s confirmed at %s" % (
-			self.currency.value_repr(self.value),
+			self.value_repr,
 			self.provider,
 			self.receiver,
 			confirmed
