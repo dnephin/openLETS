@@ -136,4 +136,7 @@ LOGGING = {
     }
 }
 
+# Default post-login url
 LOGIN_REDIRECT_URL = '/home'
+# User Profile class
+AUTH_PROFILE_MODULE = 'core.Person'

@@ -9,6 +9,7 @@
     <div class="well">
       <h5>Menu</h5>
       <ul>
+        <li><a href="#notifications">Notifications</a></li>
         <li><a href="#newtransaction">New Transaction</a></li>
         <li><a href="#recenttransactions">Recent Transactions</a></li>
         <li><a href="#balances">Balances</a></li>
@@ -49,9 +50,10 @@
 	{% endif %}
 
 	<h4>Register a new transaction</h4>
-	<form method="post" action="">
+	<form method="post" action="{% url new_transaction %}">
 		{% csrf_token %}
 		{{ new_transaction_form.as_p }}
+		<input type="submit" class="btn primary" value="Submit">
 	</form>
 
   </div>

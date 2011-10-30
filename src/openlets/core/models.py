@@ -1,5 +1,8 @@
+import itertools
+
 from django.db import models as m
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
 DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
@@ -8,11 +11,27 @@ currency_field = lambda: m.ForeignKey('Currency', related_name='+')
 
 class Person(m.Model):
 	""" """
-	user = m.OneToOneField(User)
+	user = m.OneToOneField(User, editable=False)
 	default_currency = currency_field()
 
 	def __unicode__(self):
 		return self.user.username 
+
+	def transaction_records(self):
+		return itertools.chain(
+			self.transaction_records_as_provider,
+			self.transaction_records_as_receiver
+		)
+
+def create_person(sender, instance, created, **kwargs):
+	"""Create a person for a new user."""
+	if created:
+		default_currency = Currency.objects.get(default=True)
+		Person.objects.create(
+			user=instance, 
+			default_currency=default_currency
+		)
+post_save.connect(create_person, sender=User)
 
 
 class Balance(m.Model):
@@ -100,7 +119,11 @@ class Transaction(m.Model):
 
 
 class TransactionRecord(m.Model):
-	""" """
+	"""
+	A record of the transaction submitted by a user. A transaction is not
+	official until confirmed by both parties having submitted their own
+	transaction record.
+	"""
 	provider = m.ForeignKey(
 		'Person', 
 		related_name='transaction_records_as_provider'
