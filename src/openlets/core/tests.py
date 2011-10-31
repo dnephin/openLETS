@@ -39,6 +39,9 @@ class DBTestCase(TestCase):
 				assert trans.time_created < last_trans.time_created
 			last_trans = trans
 			assert trans.status
+
+	# TODO: test get_balances
+	# with 0 balance
 		
 
 class CurrencyModelTestCase(TestCase):

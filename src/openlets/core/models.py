@@ -93,6 +93,16 @@ class PersonBalance(m.Model):
 			self.balance
 		)
 
+	@property
+	def other_person(self):
+		"""Get the person on the other side of this balance."""
+		return self.balance.persons.exclude(id=self.person.id).get()
+
+	@property
+	def relative_value(self):
+		symbol = '' if self.credited else '-'
+		return "%s%s" % (symbol, self.balance.value_repr)
+
 class ExchangeRate(m.Model):
 	""" """
 	person = m.ForeignKey('Person')

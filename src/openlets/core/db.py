@@ -19,6 +19,16 @@ def get_balance(usera, userb):
 		).balance
 	)
 
+def get_balances(user):
+	"""Get the list of balances for a user. Filter out any where the value is
+	back to 0.
+	"""
+	return models.PersonBalance.objects.filter(
+		person=user.person,
+	).exclude(
+		balance__value=0
+	)
+
 def get_pending_trans_for_user(user):
 	"""Get pending transactions for a user which were
 	created by some other user, and need to be accepted.

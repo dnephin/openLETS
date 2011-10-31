@@ -32,6 +32,9 @@ def home(request):
 	# Recent transactions, that may be confirmed
 	context['recent_trans_records'] = db.get_recent_trans_for_user(request.user)
 
+	# Currency balances
+	context['balances'] = db.get_balances(request.user)
+
 	return web.render_context(request, 'home.html', context=context)
 
 @login_required
@@ -40,10 +43,18 @@ def settings(request):
 
 @login_required
 @require_POST
-def new_transaction(request):
+def transaction_new(request):
 	form = forms.TransactionRecordForm(request.POST)
 	if form.is_valid():
 		form.save(request.user)
 		messages.success(request, 'Transaction record saved.')
 		return redirect('home')
 	return home(request)
+
+@require_GET
+def transaction_list(request):
+	context = {}
+	# TODO: filters
+	context['records'] = db.get_recent_trans_for_user(request.user, days=30)
+	# TODO: include resolutions
+	return web.render_context(request, 'transaction_list.html', context=context)

@@ -13,7 +13,6 @@
         <li><a href="#newtransaction">New Transaction</a></li>
         <li><a href="#recenttransactions">Recent Transactions</a></li>
         <li><a href="#balances">Balances</a></li>
-        <li><a href="{% url settings %}">Manage Settings</a></li>
       </ul>
 	</div>
   </div>
@@ -74,7 +73,7 @@
 	{% endif %}
 
 	<h4>Register a new transaction</h4>
-	<form method="post" action="{% url new_transaction %}">
+	<form method="post" action="{% url transaction_new %}">
 		{% csrf_token %}
 		{{ new_transaction_form.as_p }}
 		<input type="submit" class="btn primary" value="Submit">
@@ -115,6 +114,32 @@
 		{% endfor %}
 	  </tbody>
     </table>
+  </div>
+
+  <div name="balances">
+    <h3>Balances</h3>
+	<table class="zebra-striped">
+	  <thead>
+	  	<tr>
+		  <th>Person</th>
+		  <th>Amount</th>
+		  <th>Last Change</th>
+		  <th>Actions</th>
+		</tr>
+	  </thead>
+	  <tbody>
+	  	{% for balance in balances %}
+		<tr>
+		  <td>{{ balance.other_person }}</td>
+		  <td>{{ balance.relative_value }}</td>
+		  <td>{{ balance.balance.time_updated }}</td>
+		  <td>
+		    <a href="{% url transaction_list %}">History</a>
+		  </td>
+		</tr>
+		{% endfor %}
+	  </tbody>
+	</table>
   </div>
 
   {% endblock %}

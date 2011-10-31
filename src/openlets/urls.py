@@ -10,7 +10,8 @@ urlpatterns = patterns('',
     url(r'^home$', 'openletsweb.views.home', name='home'),
     url(r'^settings$', 'openletsweb.views.settings', name='settings'),
 
-    url(r'^new_transaction$', 'openletsweb.views.new_transaction', name='new_transaction'),
+    url(r'^transaction/new$', 'openletsweb.views.transaction_new', name='transaction_new'),
+    url(r'^transaction/list$', 'openletsweb.views.transaction_list', name='transaction_list'),
 
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
