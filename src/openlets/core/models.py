@@ -40,8 +40,8 @@ class Person(m.Model):
 
 	def transaction_records(self):
 		return itertools.chain(
-			self.transaction_records_as_provider,
-			self.transaction_records_as_receiver
+			self.transaction_records_creator,
+			self.transaction_records_target
 		)
 
 def create_person(sender, instance, created, **kwargs):
@@ -144,13 +144,13 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	official until confirmed by both parties having submitted their own
 	transaction record.
 	"""
-	provider = m.ForeignKey(
+	creator_person = m.ForeignKey(
 		'Person', 
-		related_name='transaction_records_as_provider'
+		related_name='transaction_records_creator'
 	)
-	receiver = m.ForeignKey(
+	target_person = m.ForeignKey(
 		'Person', 
-		related_name='transaction_records_as_receiver'
+		related_name='transaction_records_target',
 	)
 	from_provider = m.BooleanField()
 	transaction_time = m.DateTimeField()
@@ -158,7 +158,7 @@ class TransactionRecord(CurrencyMixin, m.Model):
 
 	def __unicode__(self):
 		return "Transaction Record (by %s)  %s from %s to %s at %s" % (
-			self.person_owner,
+			self.creator_person,
 			self.value_repr,
 			self.provider,
 			self.receiver,
@@ -166,18 +166,30 @@ class TransactionRecord(CurrencyMixin, m.Model):
 		)
 
 	@property
-	def person_owner(self):
-		"""Returns the person who created this record."""
-		return self.provider if self.from_provider else self.receiver
+	def provider(self):
+		"""Returns the person who is the provider in the transaction."""
+		return self.creator_person if self.from_provider else self.target_person
 
-	def set_person(self, person):
-		"""
-		Store `person` as person in the model, and the other person
-		as `other_person`. `person` is most likely the active user performing
-		a web request.
-		"""
-		self.other_person = self.receiver if self.provider == person else self.provider
-		self.person = person
+	@property
+	def receiver(self):
+		return self.creator_person if not self.from_provider else self.target_person
+
+	@property
+	def status(self):
+		trans = self.transaction
+		return 'confirmed' if trans and trans.resolved else 'pending'
+
+	@property
+	def transaction(self):
+		"""The transaction created from this record."""
+		# TODO: can I do this without the try/except ?
+		try:
+			if self.from_provider:
+				return self.provider_transaction
+			else:
+				return self.receiver_transaction
+		except Transaction.DoesNotExist:
+			return None
 
 
 class Currency(m.Model):

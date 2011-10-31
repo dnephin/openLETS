@@ -1,6 +1,7 @@
 """
 Database Acess Layer
 """
+import datetime
 import itertools
 from core import models
 
@@ -22,27 +23,18 @@ def get_pending_trans_for_user(user):
 	"""Get pending transactions for a user which were
 	created by some other user, and need to be accepted.
 	"""
-	q = models.TransactionRecord.objects
-	records = itertools.chain(
-		q.filter(
-			from_provider=False,
-			provider=user.person,
-			provider_transaction__isnull=True
-		),
-		q.filter(
-			from_provider=True,
-			receiver=user.person,
-			receiver_transaction__isnull=True
-		).all()
+	return models.TransactionRecord.objects.filter(
+		target_person=user.person,
+		provider_transaction__isnull=True,
+		receiver_transaction__isnull=True
 	)
-	person = user.person
-	for record in records:
-		record.set_person(person)
-		yield record
 
-def get_recent_trans_for_user(user):
+def get_recent_trans_for_user(user, days=10):
 	"""Get recent transaction records for the user.  These transaction records
 	may be confirmed.
 	"""
-	#return models.TransactionRecord.objects
-	return []
+	earliest_day = datetime.date.today() - datetime.timedelta(days)
+	return models.TransactionRecord.objects.filter(
+		creator_person=user.person,
+		time_created__gte=earliest_day
+	).order_by('-time_created')

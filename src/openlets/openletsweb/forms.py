@@ -7,9 +7,9 @@ class TransactionRecordForm(forms.ModelForm):
 
 	class Meta:
 		model = models.TransactionRecord
-		fields = ('currency', 'transaction_time')
+		fields = ('currency', 'transaction_time', 'target_person')
 
-	person = forms.ModelChoiceField(models.Person.objects.all())
+#	person = forms.ModelChoiceField(models.Person.objects.all())
 	from_provider =  forms.TypedChoiceField(
 		label="Type",
 		choices=[
@@ -66,20 +66,10 @@ class TransactionRecordForm(forms.ModelForm):
 		data = self.cleaned_data
 
 		trans_rec.value = data['value']
-		if data['from_provider']:
-			trans_rec.provider = active_user.person
-			trans_rec.receiver = data['person']
-		else:
-			trans_rec.provider = data['person']
-			trans_rec.receiver = active_user.person
+		trans_rec.from_provider = data['from_provider']
+		trans_rec.creator_person = active_user.person
 
 		if commit:
 			return trans_rec.save()
 		return trans_rec
 			
-
-
-
-
-
-		

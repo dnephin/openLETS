@@ -16,7 +16,7 @@ class DBTestCase(TestCase):
 		self.assertEqual(set(u.id for u in balance.persons.all()), set([2,3]))
 
 	def test_get_pending_trans_for_user(self):
-		user = models.User.objects.get(id=5)
+		user = models.User.objects.get(id=2)
 		records = list(db.get_pending_trans_for_user(user))
 		self.assertEqual(len(records), 2)
 		for record in records:
@@ -28,6 +28,18 @@ class DBTestCase(TestCase):
 				models.Transaction.DoesNotExist,
 				lambda: record.receiver_transaction
 			)
+
+	def test_get_recent_trans_for_user(self):
+		user = models.User.objects.get(id=2)
+		recent_trans = db.get_recent_trans_for_user(user)
+		self.assertEqual(len(recent_trans), 4)
+		last_trans = None
+		for trans in recent_trans:
+			if last_trans:
+				assert trans.time_created < last_trans.time_created
+			last_trans = trans
+			assert trans.status
+		
 
 class CurrencyModelTestCase(TestCase):
 

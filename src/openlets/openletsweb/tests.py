@@ -83,6 +83,7 @@ class TransactionRecordFormTestCase(FormTestCase):
 		form = self.form_class({
 			'value': 12000,
 			'currency': self.currency.id,
-			'person': 45,
+			'target_person': 45,
 		})
 #		form.save(self.user)
+		# TODO: test from_provider and value are set
