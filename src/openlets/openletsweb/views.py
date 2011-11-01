@@ -1,5 +1,4 @@
 from django.shortcuts import redirect
-from django.http import HttpResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -35,11 +34,15 @@ def home(request):
 	# Currency balances
 	context['balances'] = db.get_balances(request.user)
 
+	# TODO: notifications for recent changes
+	context['notifications'] = None
+
 	return web.render_context(request, 'home.html', context=context)
 
 @login_required
 def settings(request):
 	return web.render_context(request, 'settings.html')
+
 
 @login_required
 @require_POST
@@ -54,7 +57,8 @@ def transaction_new(request):
 @require_GET
 def transaction_list(request):
 	context = {}
-	# TODO: filters
-	context['records'] = db.get_recent_trans_for_user(request.user, days=30)
-	# TODO: include resolutions
+	context['filter_form'] = filter_form = forms.TransactionListForm(request.GET)
+	filters = filter_form.cleaned_data if filter_form.is_valid() else {}
+
+	context['records'] = db.get_trans_history(request.user, filters)
 	return web.render_context(request, 'transaction_list.html', context=context)

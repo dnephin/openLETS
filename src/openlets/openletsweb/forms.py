@@ -1,7 +1,7 @@
 from django import forms
 from openlets.core import models
 
-# TODO: tests
+
 class TransactionRecordForm(forms.ModelForm):
 	"""A Form for creating new TransactionRecord objects."""
 
@@ -9,7 +9,6 @@ class TransactionRecordForm(forms.ModelForm):
 		model = models.TransactionRecord
 		fields = ('currency', 'transaction_time', 'target_person')
 
-#	person = forms.ModelChoiceField(models.Person.objects.all())
 	from_provider =  forms.TypedChoiceField(
 		label="Type",
 		choices=[
@@ -72,4 +71,49 @@ class TransactionRecordForm(forms.ModelForm):
 		if commit:
 			return trans_rec.save()
 		return trans_rec
-			
+
+
+class TransactionListForm(forms.Form):
+	"""A form for validating filters for viewing lists of transactions
+	and resolutions.
+	"""
+
+	person = forms.ModelChoiceField(models.Person.objects.all(), required=False)
+	event_type = forms.ChoiceField(
+		choices=[
+			('', ''),
+			('transaction','Transactions'),
+			('resolution','Resolutions'),
+		],
+		required=False
+	)
+	transaction_type = forms.ChoiceField(
+		choices=[
+			('', ''),
+			('payment', 'Payments'),
+			('charge', 'Charges'),
+		],
+		required=False
+	)
+	status = forms.ChoiceField(
+		choices=[
+			('', ''),
+			('pending', 'Pending'),
+			('confirmed', 'Confirmed')
+		],
+		required=False
+	)
+	# Transaction time in days
+	transaction_time = forms.IntegerField(
+		min_value=1, 
+		max_value=365, 
+		required=False, 
+		initial=30
+	)
+	# Confirmed Time in days
+	confirmed_time = forms.IntegerField(
+		min_value=1, 
+		max_value=365, 
+		required=False, 
+	)
+	currency = forms.ModelChoiceField(models.Currency.objects.all(), required=False)

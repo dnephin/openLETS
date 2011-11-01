@@ -5,11 +5,13 @@
 
     <div class="row">
   {% block sidebar %}
-  <div class="span4">
+  <div class="span3">
     <div class="well">
       <h5>Menu</h5>
-      <ul>
+      <ul class="unstyled">
+        {% if notifications %}
         <li><a href="#notifications">Notifications</a></li>
+	    {% endif %}
         <li><a href="#newtransaction">New Transaction</a></li>
         <li><a href="#recenttransactions">Recent Transactions</a></li>
         <li><a href="#balances">Balances</a></li>
@@ -18,7 +20,7 @@
   </div>
   {% endblock %}
 
-  <div class="span12">
+  <div class="span13">
 
   {% block messages %}
 	{% if messages %}
@@ -33,7 +35,18 @@
 
   {% block content %}
 
-  <div name="newtransaction">
+  {% if notifications %}
+  <a name="notifications"></a>
+  <div>
+    <h3>Notifications</h3>
+	  {% for notification in notifications %}
+	    <p>{{ notification }}</p>
+	  {% endfor %}
+  </div>
+  {% endif %}
+
+  <a name="newtransaction"></a>
+  <div>
     <h3>New Transaction</h3>
 	{% if pending_trans_records %}
 	<h4>Pending Transactions</h4>
@@ -81,7 +94,8 @@
 
   </div>
 
-  <div name="recenttransactions">
+  <a name="recenttransactions"></a>
+  <div>
     <h3>Recent Transactions</h3>
   
     <table class="zebra-striped">
@@ -116,7 +130,8 @@
     </table>
   </div>
 
-  <div name="balances">
+  <a name="balances"></a>
+  <div>
     <h3>Balances</h3>
 	<table class="zebra-striped">
 	  <thead>
@@ -134,7 +149,7 @@
 		  <td>{{ balance.relative_value }}</td>
 		  <td>{{ balance.balance.time_updated }}</td>
 		  <td>
-		    <a href="{% url transaction_list %}">History</a>
+		    <a href="{% url transaction_list %}?person={{ balance.other_person.id }}">History</a>
 		  </td>
 		</tr>
 		{% endfor %}

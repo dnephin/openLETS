@@ -224,14 +224,12 @@ class Currency(m.Model):
 
 
 class Resolution(CurrencyMixin, m.Model):
-	""" """
-	provider = m.ForeignKey(
-		'Person', 
-		related_name='resolutions_as_provider'
-	)
-	receiver = m.ForeignKey(
-		'Person', 
-		related_name='resolutions_as_receiver'
+	"""A resolution of debts between a circle of users."""
+	persons = m.ManyToManyField(
+		'Person',
+		through='PersonResolution',
+		blank=True,
+		related_name='resolutions'
 	)
 	time_confirmed = m.DateTimeField(auto_now_add=True)
 
@@ -239,10 +237,35 @@ class Resolution(CurrencyMixin, m.Model):
 		confirmed = '-'
 		if self.time_confirmed:
 			confirmed = self.time_confirmed.strftime(DATE_FMT)
-		return "Resolution of %s from %s to %s confirmed at %s" % (
+		return "Resolution of %s between %s confirmed at %s" % (
 			self.value_repr,
-			self.provider,
-			self.receiver,
+			", ".join('%s' % p for p in self.persons.all()),
 			confirmed
 		)
 
+
+class PersonResolution(m.Model):
+	"""A join table to link Person one of their Resolutions."""
+	person = m.ForeignKey('Person')
+	resolution = m.ForeignKey('Resolution')
+	credited = m.BooleanField()
+
+	def __unicode__(self):
+		return "PersonResolution for %s and %s" % (
+			self.person,
+			self.resolution
+		)
+
+	@property
+	def other_person(self):
+		"""Get the person on the other side of this balance."""
+		return self.resolution.persons.exclude(id=self.person.id).get()
+
+	@property
+	def relative_value(self):
+		symbol = '' if self.credited else '-'
+		return "%s%s" % (symbol, self.resolution.value_repr)
+
+	@property
+	def transaction_time(self):
+		return self.resolution.time_confirmed
