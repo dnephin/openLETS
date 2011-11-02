@@ -6,10 +6,11 @@ import itertools
 import operator
 
 from django.db.models import Q
+from django.db import transaction
 
 from core import models
 
-def get_balance(persona, personb):
+def get_balance(persona, personb, currency=None):
 	"""Load a balance between two persons. 
 	"""
 	return (models.PersonBalance.objects
@@ -19,7 +20,8 @@ def get_balance(persona, personb):
 		)
 		.get(
 			person=persona,
-			balance__persons=personb
+			balance__persons=personb,
+			balance__currency=currency
 		).balance
 	)
 
@@ -75,7 +77,7 @@ def get_trans_history(user, filters):
 			resolution_query.append(Q(**{resolution:val}))
 
 	# Setup filters 
-	event_type = filters.get('event_type')
+	transfer_type = filters.get('transfer_type')
 	conv('person', 'target_person', 'resolution__persons')
 	conv('transaction_type', 'from_receiver', 'credited', lambda x: x == 'charge')
 	conv('currency', 'currency', 'resolution__currency')
@@ -99,14 +101,14 @@ def get_trans_history(user, filters):
 	# Q(transaction__time_confirmed__gt=day)
 
 	# Query Transactions
-	if not event_type or event_type == 'transaction':
+	if not transfer_type or transfer_type == 'transaction':
 		query_sets.append(models.TransactionRecord.objects.filter(
 			*trans_query,
 			creator_person=user.person
 		))
 
 	# Query Resolutions
-	if not event_type or event_type == 'resolution':
+	if not transfer_type or transfer_type == 'resolution':
 		query_sets.append(models.PersonResolution.objects.filter(
 			*resolution_query,
 			person=user.person
@@ -117,3 +119,72 @@ def get_trans_history(user, filters):
 		itertools.chain.from_iterable(query_sets), 
 		key=operator.attrgetter('transaction_time')
 	)
+
+
+def get_trans_record_for_user(trans_record_id, user):
+	"""Get a transaction record for a user."""
+	return models.TransactionRecord.objects.get(
+		id=trans_record_id,
+		target_person=user.person
+	)
+
+@transaction.commit_on_success
+def confirm_trans_record(trans_record):
+	"""Confirm a transaction record."""
+	# Build and save matching record
+	confirm_record = models.TransactionRecord(
+		creator_person=trans_record.target_person,
+		target_person=trans_record.creator_person,
+		from_receiver=not trans_record.from_receiver,
+		currency=trans_record.currency,
+		transaction_time=trans_record.transaction_time,
+		value=trans_record.value
+	)
+	confirm_record.save()
+
+	# Save transaction
+	if trans_record.from_receiver:
+		receiver, provider = trans_record, confirm_record
+	else:
+		receiver, provider = confirm_record, trans_record
+
+	transaction = models.Transaction(
+		resolved=True,
+		receiver_record=receiver,
+		provider_record=provider
+	)
+	transaction.save()
+
+	# Update the balance, or create a new one
+	update_balance(transaction)
+
+
+# TODO: tests!
+def update_balance(transfer):
+	"""Update or create a balance between two users for a currency. Should be
+	called from a method that was already created a transaction.
+
+	event - a transaction or a resolution
+	"""
+	try:
+		balance = get_balance(*transfer.persons, currency=transfer.currency)
+	except models.Balance.DoesNotExist:
+		balance = models.Balance(
+			persons=transfer.persons,
+			currency=transfer.currency
+		)
+
+	# Establish the direction of the transfer
+	if transfer.provider == balance.debted:
+		balance.value += transfer.value
+	else:
+		balance_value = balance.value - transfer.value
+		if (balance_value) < 0:
+			balance.value = abs(balance_value)
+			for personbalance in balance.persons:
+				personbalance.credited = not personbalance.credited
+
+	balance.save()
+
+
+	

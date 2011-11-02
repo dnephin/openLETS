@@ -68,17 +68,19 @@ class Balance(CurrencyMixin, m.Model):
 	time_updated = m.DateTimeField(auto_now=True)
 
 	def __unicode__(self):
-		credited = debted = None
-		for pb in self.personbalance_set.all():
-			if pb.credited:
-				credited = pb.person
-			else:
-				debted = pb.person
 		return "Balance of %s credited to %s, debt from %s" % (
 			self.value_repr,
-			credited,
-			debted
+			self.credited,
+			self.debted
 		)
+
+	@property
+	def credited(self):
+		return self.personbalance_set.get(credited=True).person
+	
+	@property
+	def debted(self):
+		return self.personbalance_set.get(credited=False).person
 
 
 class PersonBalance(m.Model):
@@ -133,6 +135,7 @@ class Transaction(m.Model):
 		'TransactionRecord', 
 		related_name='receiver_transaction'
 	)
+	# TODO: change to confirmed
 	resolved = m.BooleanField()
 	time_confirmed = m.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -146,6 +149,35 @@ class Transaction(m.Model):
 			self.provider_record.receiver,
 			confirmed
 		)
+
+	@property
+	def currency(self):
+		"""Get the currency of a resolved transaction."""
+		if not self.resolved:
+			raise ValueError("Transaction not yet resolved.")
+		return self.provider_record.currency
+
+	@property
+	def value(self):
+		if not self.resolved:
+			raise ValueError("Transaction not yet resolved.")
+		return self.provider_record.value
+
+	@property
+	def persons(self):
+		"""Get the persons participating in the transaction."""
+		return [
+			self.provider_record.creator_person, 
+			self.provider_record.target_person
+		]
+
+	@property
+	def provider(self):
+		self.provider_record.creator_person
+
+	@property
+	def receiver(self):
+		self.receiver_record.creator_person
 
 
 class TransactionRecord(CurrencyMixin, m.Model):
@@ -165,6 +197,8 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	from_receiver = m.BooleanField()
 	transaction_time = m.DateTimeField()
 	time_created = m.DateTimeField(auto_now_add=True)
+
+	# TODO: add notes field
 
 	def __unicode__(self):
 		return "Transaction Record (by %s)  %s from %s to %s at %s" % (
@@ -203,7 +237,14 @@ class TransactionRecord(CurrencyMixin, m.Model):
 
 	@property
 	def transaction_type(self):
+		"""The type of transaction relative to the user who created this record."""
 		return 'charge' if self.from_receiver else 'payment'
+
+	@property
+	def targets_transaction_type(self):
+		"""The type of transaction relative to the target user."""
+		return 'payment' if self.from_receiver else 'charge'
+		
 
 
 class Currency(m.Model):
@@ -247,6 +288,14 @@ class Resolution(CurrencyMixin, m.Model):
 			", ".join('%s' % p for p in self.persons.all()),
 			confirmed
 		)
+
+	@property
+	def provider(self):
+		return self.personresolution_set.get(credited=False).person
+		
+	@property
+	def receiver(self):
+		return self.personresolution_set.get(credited=True).person
 
 
 class PersonResolution(m.Model):

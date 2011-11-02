@@ -13,6 +13,13 @@ urlpatterns = patterns('',
     url(r'^transaction/new$', 'openletsweb.views.transaction_new', name='transaction_new'),
     url(r'^transaction/list$', 'openletsweb.views.transaction_list', name='transaction_list'),
 
+    url(r'^transaction/confirm/(\d+)$', 
+		'openletsweb.views.transaction_confirm', 
+		name='transaction_confirm'),
+    url(r'^transaction/modify/(\d+)$', 
+		'openletsweb.views.transaction_modify', 
+		name='transaction_modify'),
+
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),

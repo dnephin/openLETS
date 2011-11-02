@@ -25,7 +25,7 @@
   {% block messages %}
 	{% if messages %}
 	  {% for message in messages %}
-	    <div class="alert-message {{ message.tags}}">
+	    <div class="alert-message {{ message.tags}}" data-alert="alert">
 			<a class="close" href="#">×</a>
 			<p>{{ message }}</p>
 		</div>
@@ -64,14 +64,13 @@
 	  <tbody>
 	    {% for record in pending_trans_records %}
 	    <tr>
-		  <td>{{ record.transaction_type|capfirst }}</td>
+		  <td>{{ record.targets_transaction_type|capfirst }}</td>
 		  <td>{{ record.creator_person }}</td>
 		  <td>{{ record.value_repr }}</td>
 		  <td>{{ record.transaction_time}}</td>
-		  <td>
-		  	<a href="#">confirm</a>
-			<a href="#">modify</a>
-			<a href="#">reject</a>
+		  <td class="link_container">
+		  	<a href="{% url transaction_confirm record.id %}">confirm</a>
+			<a href="{% url transaction_modify record.id %}">modify</a>
 		  </td>
 		</tr>
 		{% endfor %}

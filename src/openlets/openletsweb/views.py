@@ -13,6 +13,7 @@ def index(request):
 
 @login_required
 def home(request):
+	"""Setup homepage context."""
 	context = {}
 
 	# New Transaction form
@@ -47,6 +48,7 @@ def settings(request):
 @login_required
 @require_POST
 def transaction_new(request):
+	"""Create a new transaction record."""
 	form = forms.TransactionRecordForm(request.POST)
 	if form.is_valid():
 		form.save(request.user)
@@ -56,9 +58,23 @@ def transaction_new(request):
 
 @require_GET
 def transaction_list(request):
+	"""List transactions."""
 	context = {}
 	context['filter_form'] = filter_form = forms.TransactionListForm(request.GET)
 	filters = filter_form.cleaned_data if filter_form.is_valid() else {}
 
 	context['records'] = db.get_trans_history(request.user, filters)
 	return web.render_context(request, 'transaction_list.html', context=context)
+
+@require_GET
+def transaction_confirm(request, trans_record_id):
+	"""Confirm a transaction record from another person."""
+	trans_record = db.get_trans_record_for_user(trans_record_id, request.user)
+	db.confirm_trans_record(trans_record)
+	messages.success(request, 'Transaction confirmed.')
+	return redirect('home')
+
+@require_GET
+def transaction_modify(request, trans_record_id):
+	"""Modify a transaction record from another person."""
+

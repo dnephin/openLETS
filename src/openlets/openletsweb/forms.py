@@ -79,7 +79,7 @@ class TransactionListForm(forms.Form):
 	"""
 
 	person = forms.ModelChoiceField(models.Person.objects.all(), required=False)
-	event_type = forms.ChoiceField(
+	transfer_type = forms.ChoiceField(
 		choices=[
 			('', 'All'),
 			('transaction','Transactions'),
