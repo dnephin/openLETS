@@ -162,7 +162,7 @@ class TransactionRecord(CurrencyMixin, m.Model):
 		'Person', 
 		related_name='transaction_records_target',
 	)
-	from_provider = m.BooleanField()
+	from_receiver = m.BooleanField()
 	transaction_time = m.DateTimeField()
 	time_created = m.DateTimeField(auto_now_add=True)
 
@@ -178,11 +178,11 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	@property
 	def provider(self):
 		"""Returns the person who is the provider in the transaction."""
-		return self.creator_person if self.from_provider else self.target_person
+		return self.creator_person if not self.from_receiver else self.target_person
 
 	@property
 	def receiver(self):
-		return self.creator_person if not self.from_provider else self.target_person
+		return self.creator_person if self.from_receiver else self.target_person
 
 	@property
 	def status(self):
@@ -194,12 +194,16 @@ class TransactionRecord(CurrencyMixin, m.Model):
 		"""The transaction created from this record."""
 		# TODO: can I do this without the try/except ?
 		try:
-			if self.from_provider:
-				return self.provider_transaction
-			else:
+			if self.from_receiver:
 				return self.receiver_transaction
+			else:
+				return self.provider_transaction
 		except Transaction.DoesNotExist:
 			return None
+
+	@property
+	def transaction_type(self):
+		return 'charge' if self.from_receiver else 'payment'
 
 
 class Currency(m.Model):
@@ -231,6 +235,7 @@ class Resolution(CurrencyMixin, m.Model):
 		blank=True,
 		related_name='resolutions'
 	)
+	action_id = m.IntegerField()
 	time_confirmed = m.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):

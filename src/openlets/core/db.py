@@ -4,6 +4,9 @@ Database Acess Layer
 import datetime
 import itertools
 import operator
+
+from django.db.models import Q
+
 from core import models
 
 def get_balance(persona, personb):
@@ -53,59 +56,60 @@ def get_recent_trans_for_user(user, days=10):
 # TODO: tests
 def get_trans_history(user, filters):
 	"""Get a list of all transactions and resolutions for the user filtered
-	by filters.
+	by form filters.
 	"""
 	query_sets = []
-	resolution_filters, trans_filters = {}, {}
+	resolution_query, trans_query = [], []
 	now = datetime.datetime.now()
 
-	def conv(key, trans_key, resolution_key, coerce_val=None):
+	def conv(key, trans, resolution, coerce_val=None):
 		"""Helper to setup filters for both tables."""
 		val = filters.get(key)
 		if not val:
 			return
 		if coerce_val:
 			val = coerce_val(val)
-		if trans_key:
-			trans_filters[trans_key] = val
-		if resolution_key:
-			resolution_filters[resolution_key] = val
-
+		if trans:
+			trans_query.append(Q(**{trans:val}))
+		if resolution:
+			resolution_query.append(Q(**{resolution:val}))
 
 	# Setup filters 
 	event_type = filters.get('event_type')
 	conv('person', 'target_person', 'resolution__persons')
+	conv('transaction_type', 'from_receiver', 'credited', lambda x: x == 'charge')
+	conv('currency', 'currency', 'resolution__currency')
 
-	# TODO: transaction type
-	#if 'transaction_type' in filters:
-	#	trans_type = filters['transaction_type']
+	# TODO: use a query manage to simplify this lookup for transaction
+	conv('status', None, 'resolution__time_confirmed__isnull',
+		lambda x: x == 'pending')
 
-	# TODO: status
 	conv('transaction_time', 
 		'transaction_time__gt', 
 		'resolution__time_confirmed__gt',
 		lambda d: now - datetime.timedelta(days=d)
 	)
-	# TODO: use Q objects for transaction
+
 	conv('confirmed_time',
 		None,
 		'resolution__time_confirmed__gt',
 		lambda d: now - datetime.timedelta(days=d)
 	)
-	conv('currency', 'currency', 'resolution__currency')
+	# TODO: query manager
+	# Q(transaction__time_confirmed__gt=day)
 
 	# Query Transactions
 	if not event_type or event_type == 'transaction':
 		query_sets.append(models.TransactionRecord.objects.filter(
-			creator_person=user.person,
-			**trans_filters
+			*trans_query,
+			creator_person=user.person
 		))
 
 	# Query Resolutions
 	if not event_type or event_type == 'resolution':
 		query_sets.append(models.PersonResolution.objects.filter(
-			person=user.person,
-			**resolution_filters
+			*resolution_query,
+			person=user.person
 		))
 
 	# Merge results

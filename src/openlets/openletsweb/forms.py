@@ -9,13 +9,13 @@ class TransactionRecordForm(forms.ModelForm):
 		model = models.TransactionRecord
 		fields = ('currency', 'transaction_time', 'target_person')
 
-	from_provider =  forms.TypedChoiceField(
+	from_receiver =  forms.TypedChoiceField(
 		label="Type",
 		choices=[
 			('payment', 'Payment'),
 			('charge', 'Charge')
 		],
-		coerce=lambda o: o == 'payment',
+		coerce=lambda o: o == 'charge',
 		widget=forms.RadioSelect(),
 		initial='payment'
 	)
@@ -65,7 +65,7 @@ class TransactionRecordForm(forms.ModelForm):
 		data = self.cleaned_data
 
 		trans_rec.value = data['value']
-		trans_rec.from_provider = data['from_provider']
+		trans_rec.from_receiver = data['from_receiver']
 		trans_rec.creator_person = active_user.person
 
 		if commit:
@@ -81,7 +81,7 @@ class TransactionListForm(forms.Form):
 	person = forms.ModelChoiceField(models.Person.objects.all(), required=False)
 	event_type = forms.ChoiceField(
 		choices=[
-			('', ''),
+			('', 'All'),
 			('transaction','Transactions'),
 			('resolution','Resolutions'),
 		],
@@ -89,7 +89,7 @@ class TransactionListForm(forms.Form):
 	)
 	transaction_type = forms.ChoiceField(
 		choices=[
-			('', ''),
+			('', 'All'),
 			('payment', 'Payments'),
 			('charge', 'Charges'),
 		],
@@ -97,7 +97,7 @@ class TransactionListForm(forms.Form):
 	)
 	status = forms.ChoiceField(
 		choices=[
-			('', ''),
+			('', 'All'),
 			('pending', 'Pending'),
 			('confirmed', 'Confirmed')
 		],

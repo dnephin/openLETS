@@ -25,14 +25,8 @@
 	  <tbody>
 	    {% for record in records %}
 	    <tr>
-		  <td>
-			{% if record.from_provider %}
-			  Payment
-			{% else %}
-			  Charge
-			{% endif %}
-		  </td>
-		  <td>{{ record.status }}</td>
+		  <td>{{ record.transaction_type|capfirst }}</td>
+		  <td>{{ record.status|capfirst }}</td>
 		  <td>{{ record.target_person }}</td>
 		  <td>{{ record.value_repr }}</td>
 		  <td>{{ record.transaction_time}}</td>
