@@ -53,7 +53,7 @@ def create_person(sender, instance, created, **kwargs):
 	# Raw is set when using loaded (ex: loading test fixtures)
 	if created and not kwargs.get('raw'):
 		Person.objects.create(user=instance, default_currency=default_currency)
-post_save.connect(create_person, sender=User)
+post_save.connect(create_person, sender=User, dispatch_uid='create_person_handler')
 
 
 class Balance(CurrencyMixin, m.Model):
@@ -122,21 +122,7 @@ class ExchangeRate(m.Model):
 		)
 
 class Transaction(m.Model):
-	""" """
-
-	class Meta:
-		unique_together = ('provider_record', 'receiver_record')
-
-	provider_record = m.OneToOneField(
-		'TransactionRecord', 
-		related_name='provider_transaction'
-	)
-	receiver_record = m.OneToOneField(
-		'TransactionRecord', 
-		related_name='receiver_transaction'
-	)
-	# TODO: change to confirmed
-	resolved = m.BooleanField()
+	"""A transaction between two people."""
 	time_confirmed = m.DateTimeField(auto_now_add=True, null=True, blank=True)
 
 	def __unicode__(self):
@@ -145,39 +131,44 @@ class Transaction(m.Model):
 			confirmed = self.time_confirmed.strftime(DATE_FMT)
 		return "Transaction of %s from %s to %s confirmed at %s" % (
 			self.provider_record.value_repr,
-			self.provider_record.provider,
-			self.provider_record.receiver,
+			self.provider,
+			self.receiver,
 			confirmed
 		)
 
 	@property
 	def currency(self):
 		"""Get the currency of a resolved transaction."""
-		if not self.resolved:
+		if not self.time_confirmed:
 			raise ValueError("Transaction not yet resolved.")
-		return self.provider_record.currency
+		return self.transaction_records.all()[0].currency
 
 	@property
 	def value(self):
-		if not self.resolved:
+		if not self.time_confirmed:
 			raise ValueError("Transaction not yet resolved.")
-		return self.provider_record.value
+		return self.transaction_records.all()[0].currency
 
 	@property
 	def persons(self):
 		"""Get the persons participating in the transaction."""
-		return [
-			self.provider_record.creator_person, 
-			self.provider_record.target_person
-		]
+		return [record.person for record in self.transaction_records.all()]
+
+	@property
+	def provider_record(self):
+		self.transaction_records.filter(from_receiver=False)
+
+	@property
+	def receiver_record(self):
+		self.transaction_records.filter(from_receiver=True)
 
 	@property
 	def provider(self):
-		self.provider_record.creator_person
+		return self.provider_record.creator_person
 
 	@property
 	def receiver(self):
-		self.receiver_record.creator_person
+		return self.receiver_record.creator_person
 
 
 class TransactionRecord(CurrencyMixin, m.Model):
@@ -186,6 +177,12 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	official until confirmed by both parties having submitted their own
 	transaction record.
 	"""
+	transaction = m.ForeignKey(
+		'Transaction', 
+		related_name='transaction_records',
+		null=True,
+		blank=True
+	)
 	creator_person = m.ForeignKey(
 		'Person', 
 		related_name='transaction_records_creator'
@@ -197,8 +194,7 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	from_receiver = m.BooleanField()
 	transaction_time = m.DateTimeField()
 	time_created = m.DateTimeField(auto_now_add=True)
-
-	# TODO: add notes field
+	notes = m.TextField(null=True, blank=True)
 
 	def __unicode__(self):
 		return "Transaction Record (by %s)  %s from %s to %s at %s" % (
@@ -224,18 +220,6 @@ class TransactionRecord(CurrencyMixin, m.Model):
 		return 'confirmed' if trans and trans.resolved else 'pending'
 
 	@property
-	def transaction(self):
-		"""The transaction created from this record."""
-		# TODO: can I do this without the try/except ?
-		try:
-			if self.from_receiver:
-				return self.receiver_transaction
-			else:
-				return self.provider_transaction
-		except Transaction.DoesNotExist:
-			return None
-
-	@property
 	def transaction_type(self):
 		"""The type of transaction relative to the user who created this record."""
 		return 'charge' if self.from_receiver else 'payment'
@@ -244,7 +228,6 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	def targets_transaction_type(self):
 		"""The type of transaction relative to the target user."""
 		return 'payment' if self.from_receiver else 'charge'
-		
 
 
 class Currency(m.Model):

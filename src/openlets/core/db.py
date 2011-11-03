@@ -7,6 +7,7 @@ import operator
 
 from django.db.models import Q
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 from core import models
 
@@ -41,8 +42,7 @@ def get_pending_trans_for_user(user):
 	"""
 	return models.TransactionRecord.objects.filter(
 		target_person=user.person,
-		provider_transaction__isnull=True,
-		receiver_transaction__isnull=True
+		transaction__isnull=True
 	)
 
 def get_recent_trans_for_user(user, days=10):
@@ -56,7 +56,7 @@ def get_recent_trans_for_user(user, days=10):
 	).order_by('-time_created')
 
 # TODO: tests
-def get_trans_history(user, filters):
+def get_transfer_history(user, filters):
 	"""Get a list of all transactions and resolutions for the user filtered
 	by form filters.
 	"""
@@ -72,9 +72,9 @@ def get_trans_history(user, filters):
 		if coerce_val:
 			val = coerce_val(val)
 		if trans:
-			trans_query.append(Q(**{trans:val}))
+			trans_query.append((trans, val))
 		if resolution:
-			resolution_query.append(Q(**{resolution:val}))
+			resolution_query.append((resolution, val))
 
 	# Setup filters 
 	transfer_type = filters.get('transfer_type')
@@ -82,9 +82,11 @@ def get_trans_history(user, filters):
 	conv('transaction_type', 'from_receiver', 'credited', lambda x: x == 'charge')
 	conv('currency', 'currency', 'resolution__currency')
 
-	# TODO: use a query manage to simplify this lookup for transaction
-	conv('status', None, 'resolution__time_confirmed__isnull',
-		lambda x: x == 'pending')
+	conv('status',
+		'transaction__time_confirmed__isnull',
+		'resolution__time_confirmed__isnull',
+		lambda x: x == 'pending'
+	)
 
 	conv('transaction_time', 
 		'transaction_time__gt', 
@@ -93,25 +95,23 @@ def get_trans_history(user, filters):
 	)
 
 	conv('confirmed_time',
-		None,
+		'transaction__time_confirmed__gt',
 		'resolution__time_confirmed__gt',
 		lambda d: now - datetime.timedelta(days=d)
 	)
-	# TODO: query manager
-	# Q(transaction__time_confirmed__gt=day)
 
 	# Query Transactions
 	if not transfer_type or transfer_type == 'transaction':
 		query_sets.append(models.TransactionRecord.objects.filter(
-			*trans_query,
-			creator_person=user.person
+			creator_person=user.person,
+			**dict(trans_query)
 		))
 
 	# Query Resolutions
 	if not transfer_type or transfer_type == 'resolution':
 		query_sets.append(models.PersonResolution.objects.filter(
-			*resolution_query,
-			person=user.person
+			person=user.person,
+			**dict(resolution_query)
 		))
 
 	# Merge results
@@ -140,51 +140,67 @@ def confirm_trans_record(trans_record):
 		transaction_time=trans_record.transaction_time,
 		value=trans_record.value
 	)
-	confirm_record.save()
+	transaction = models.Transaction()
+	confirm_record.transaction = trans_record.transaction = transaction
 
-	# Save transaction
-	if trans_record.from_receiver:
-		receiver, provider = trans_record, confirm_record
-	else:
-		receiver, provider = confirm_record, trans_record
-
-	transaction = models.Transaction(
-		resolved=True,
-		receiver_record=receiver,
-		provider_record=provider
-	)
 	transaction.save()
+	confirm_record.save()
+	trans_record.save()
 
 	# Update the balance, or create a new one
-	update_balance(transaction)
+	update_balance(
+		trans_record, 
+		trans_record.provider,
+		trans_record.receiver
+	)
 
 
+# TODO: I'd like this to be able to use the properties of a transfer object
 # TODO: tests!
-def update_balance(transfer):
+def update_balance(currency_type, provider, receiver):
 	"""Update or create a balance between two users for a currency. Should be
-	called from a method that was already created a transaction.
-
-	event - a transaction or a resolution
+	called from a method that was already created a transfer.
 	"""
 	try:
-		balance = get_balance(*transfer.persons, currency=transfer.currency)
-	except models.Balance.DoesNotExist:
-		balance = models.Balance(
-			persons=transfer.persons,
-			currency=transfer.currency
-		)
+		balance = get_balance(provider, receiver, currency=currency_type.currency)
+	except ObjectDoesNotExist:
+		return new_balance(currency_type, provider, receiver)
 
 	# Establish the direction of the transfer
-	if transfer.provider == balance.debted:
-		balance.value += transfer.value
-	else:
-		balance_value = balance.value - transfer.value
-		if (balance_value) < 0:
-			balance.value = abs(balance_value)
-			for personbalance in balance.persons:
-				personbalance.credited = not personbalance.credited
+	if provider == balance.debted:
+		balance.value += currency_type.value
+		balance.save()
+		return balance
+
+	balance_value = balance.value - currency_type.value
+	if (balance_value) < 0:
+		balance.value = abs(balance_value)
+		for personbalance in balance.persons:
+			personbalance.credited = not personbalance.credited
 
 	balance.save()
+	# TODO: does this cascade to the personbalance ?
+	return balance
 
 
+# TODO: complete this
+def new_balance(currency_type, provider, receiver):
+	balance = models.Balance(
+		currency=currency_type.currency, 
+		value=currency_type.value
+	)
+	balance.save()
+	personbalancea = models.PersonBalance(
+		person=provider,
+		credited=False,
+		balance_id=balance.id
+	)
+	personbalanceb = models.PersonBalance(
+		person=receiver,
+		credited=True,
+		balance_id=balance.id
+	)
+	personbalancea.save()
+	personbalanceb.save()
+	return balance
 	

@@ -60,10 +60,10 @@ def transaction_new(request):
 def transaction_list(request):
 	"""List transactions."""
 	context = {}
-	context['filter_form'] = filter_form = forms.TransactionListForm(request.GET)
+	context['filter_form'] = filter_form = forms.TransferListForm(request.GET)
 	filters = filter_form.cleaned_data if filter_form.is_valid() else {}
 
-	context['records'] = db.get_trans_history(request.user, filters)
+	context['records'] = db.get_transfer_history(request.user, filters)
 	return web.render_context(request, 'transaction_list.html', context=context)
 
 @require_GET

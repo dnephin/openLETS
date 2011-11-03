@@ -7,7 +7,7 @@ class TransactionRecordForm(forms.ModelForm):
 
 	class Meta:
 		model = models.TransactionRecord
-		fields = ('currency', 'transaction_time', 'target_person')
+		fields = ('currency', 'transaction_time', 'target_person', 'notes')
 
 	from_receiver =  forms.TypedChoiceField(
 		label="Type",
@@ -73,7 +73,7 @@ class TransactionRecordForm(forms.ModelForm):
 		return trans_rec
 
 
-class TransactionListForm(forms.Form):
+class TransferListForm(forms.Form):
 	"""A form for validating filters for viewing lists of transactions
 	and resolutions.
 	"""
