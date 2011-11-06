@@ -1,5 +1,6 @@
 from django import forms
 from openlets.core import models
+from openlets.openletsweb import widgets
 
 
 class TransactionRecordForm(forms.ModelForm):
@@ -16,7 +17,7 @@ class TransactionRecordForm(forms.ModelForm):
 			('charge', 'Charge')
 		],
 		coerce=lambda o: o == 'charge',
-		widget=forms.RadioSelect(),
+		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 		initial='payment'
 	)
 	value = forms.CharField(max_length=200)
@@ -85,7 +86,8 @@ class TransferListForm(forms.Form):
 			('transaction','Transactions'),
 			('resolution','Resolutions'),
 		],
-		required=False
+		required=False,
+		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 	)
 	transaction_type = forms.ChoiceField(
 		choices=[
@@ -93,7 +95,8 @@ class TransferListForm(forms.Form):
 			('payment', 'Payments'),
 			('charge', 'Charges'),
 		],
-		required=False
+		required=False,
+		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 	)
 	status = forms.ChoiceField(
 		choices=[
@@ -101,7 +104,8 @@ class TransferListForm(forms.Form):
 			('pending', 'Pending'),
 			('confirmed', 'Confirmed')
 		],
-		required=False
+		required=False,
+		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 	)
 	# Transaction time in days
 	transaction_time = forms.IntegerField(
