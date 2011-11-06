@@ -20,6 +20,16 @@ urlpatterns = patterns('',
 		'openletsweb.views.transaction_modify', 
 		name='transaction_modify'),
 
+    url(r'^settings/user/update$',
+		'openletsweb.views.user_update',
+		name='user_update'),
+    url(r'^settings/person/update$',
+		'openletsweb.views.person_update',
+		name='person_update'),
+    url(r'^exchange_rate/new$', 
+		'openletsweb.views.exchange_rate_new', 
+		name='exchange_rate_new'),
+
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),

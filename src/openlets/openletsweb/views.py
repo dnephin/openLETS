@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import forms as auth_forms
 from django.contrib import messages
 
 from openlets.core import db
@@ -19,7 +20,7 @@ def home(request):
 	# New Transaction form
 	new_trans_form_data = request.POST if request.method == 'POST' else None
 	context['new_transaction_form'] = forms.TransactionRecordForm(
-		new_trans_form_data,
+		web.form_data(request),
 		initial={
 			'currency': request.user.person.default_currency
 		}
@@ -42,8 +43,62 @@ def home(request):
 
 @login_required
 def settings(request):
-	return web.render_context(request, 'settings.html')
+	"""Build context for settings page."""
+	context = {}
+	# TODO:usage statistics
 
+	# User account form
+	context['user_form'] = forms.UserForm(
+		web.form_data(request),
+		instance=request.user
+	)
+	context['password_form'] = auth_forms.PasswordChangeForm(
+		web.form_data(request)
+	)
+
+	# Person forms
+	context['person_form'] = forms.PersonForm(
+		web.form_data(request),
+		instance=request.user.person
+	)
+
+	# Exchange rates
+	context['exchange_rates'] = db.get_exchange_rates(request.user)
+	context['exchange_rate_form'] = forms.ExchangeRateForm(
+		web.form_data(request)
+	)
+	return web.render_context(request, 'settings.html', context=context)
+
+@login_required
+@require_POST
+def exchange_rate_new(request):
+	form = forms.ExchangeRateForm(request.POST)
+	if form.is_valid():
+		form.save(request.user)
+		messages.success(request, 'Exchange rate created.')
+		return redirect('settings')
+	return settings(request)
+
+@login_required
+@require_POST
+def person_update(request):
+	"""Update person details."""
+	form = forms.PersonForm(request.POST, instance=request.user.person)
+	if form.is_valid():
+		form.save()
+		messages.success(request, 'Settings updated.')
+		return redirect('settings')
+	return settings(request)
+
+@login_required
+@require_POST
+def user_update(request):
+	form = forms.UserForm(request.POST, instance=request.user)
+	if form.is_valid():
+		form.save()
+		messages.success(request, 'Account updated.')
+		return redirect('settings')
+	return settings(request)
 
 @login_required
 @require_POST

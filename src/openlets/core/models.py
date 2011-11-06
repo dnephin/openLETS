@@ -112,14 +112,25 @@ class ExchangeRate(m.Model):
 	dest_currency = currency_field() 
 	source_rate = m.IntegerField()
 	dest_rate = m.IntegerField()
-	time_confirmed = m.DateTimeField(auto_now_add=True)
+	time_created = m.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		unique_together = ('source_currency', 'dest_currency')
 
 	def __unicode__(self):
 		return "%s Exchange Rate: %s to %s" % (
 			self.person,
-			self.source_currency.value_repr(self.source_rate),
-			self.dest_currency.value_repr(self.dest_rate)
+			self.source_repr,
+			self.dest_repr
 		)
+
+	@property
+	def source_repr(self):
+		return self.source_currency.value_repr(self.source_rate)
+
+	@property
+	def dest_repr(self):
+		return self.dest_currency.value_repr(self.dest_rate)
 
 class Transaction(m.Model):
 	"""A transaction between two people."""

@@ -32,3 +32,8 @@ def render_context(request, template, context=None, type='html', *args):
 	return render_to_response(template, context_instance=context)
 	
 
+def form_data(request, expected='POST'):
+	"""Get the expected form data if the request method matches expected,
+	otherwise return None.  Used to get form data.
+	"""
+	return getattr(request, expected) if request.method == expected else None

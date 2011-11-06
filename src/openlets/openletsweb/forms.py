@@ -117,3 +117,34 @@ class TransferListForm(forms.Form):
 		required=False, 
 	)
 	currency = forms.ModelChoiceField(models.Currency.objects.all(), required=False)
+
+
+class PersonForm(forms.ModelForm):
+	"""A form to edit Person details."""
+
+	class Meta:
+		model = models.Person
+		fields = ('default_currency',)
+
+
+class ExchangeRateForm(forms.ModelForm):
+	"""A form to create or edit Exchange Rates."""
+
+	class Meta:
+		model = models.ExchangeRate
+		exclude = ('person', 'time_created')
+
+	def save(self, active_user, commit=True):
+		model = super(ExchangeRateForm, self).save(commit=False)
+		model.person = active_user.person
+		if commit:
+			return model.save()
+		return model
+
+
+class UserForm(forms.ModelForm):
+	"""A form to edit user details."""
+
+	class Meta:
+		model = models.User
+		fields = ('username', 'first_name', 'last_name', 'email')

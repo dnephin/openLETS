@@ -55,6 +55,13 @@ def get_recent_trans_for_user(user, days=10):
 		time_created__gte=earliest_day
 	).order_by('-transaction_time')
 
+def get_exchange_rates(user):
+	"""Get exchange rates for the user."""
+	return models.ExchangeRate.objects.filter(
+		person=user.person
+	)
+
+
 # TODO: tests
 def get_transfer_history(user, filters):
 	"""Get a list of all transactions and resolutions for the user filtered

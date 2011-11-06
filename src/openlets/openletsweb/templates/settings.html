@@ -1,21 +1,114 @@
 {% extends 'base.html' %}
 
 {% block container %}
+  <div class="content">
 
+    <div class="row">
   {% block sidebar %}
-  <div class="span4">
+  <div class="span3">
     <div class="well">
       <h5>Menu</h5>
-      <ul>
-        <li><a href="#newtransaction">New Transaction</a></li>
+      <ul class="unstyled">
+        <li><a href="#usagestats">Usage Statistics</a></li>
+        <li><a href="#account">Account</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#exchangerates">Exchange Rates</a></li>
       </ul>
 	</div>
   </div>
   {% endblock %}
 
-  <div class="span11">
+  <div class="span13">
+
+  {% block messages %}
+	{% if messages %}
+	  {% for message in messages %}
+	    <div class="alert-message {{ message.tags}}" data-alert="alert">
+			<a class="close" href="#">×</a>
+			<p>{{ message }}</p>
+		</div>
+	  {% endfor %}
+	{% endif %}
+  {% endblock %}
+
   {% block content %}
+
+  <a name="usagestats"></a>
+  <div>
+    <h3>Usage Statistics</h3>
+	<ul class="unstyled">
+  	  <li><strong>Join on</strong> {{ user.date_joined }}</li>
+	  <li><strong>Last login</strong> {{ user.last_login }}</li>
+	</ul>
+  </div>
+
+  <a name="account"></a>
+  <div>
+    <h3>Account</h3>
+
+	<form method="POST" action="{% url user_update %}">
+      {% csrf_token %}
+  	  {{ user_form.as_p }}
+	  <input type="submit" value="Save" class="btn primary"/>
+	</form>
+
+	<h4>Password</h4>
+	<form method="POST" action="{% url django.contrib.auth.views.password_change %}">
+      {% csrf_token %}
+	  {{ password_form.as_p }}
+	  <input type="submit" value="Update password" class="btn primary"/>
+	</form>
+  </div>
+
+  <a name="settings"></a>
+  <div>
+    <h3>Settings</h3>
+	<form method="POST" action="{% url person_update %}">
+      {% csrf_token %}
+	  {{ person_form.as_p }}
+	  <input type="submit" value="Update" class="btn primary"/>
+	</form>
+  </div>
+
+  <a name="exchangerates"></a>
+  <div>
+    <h3>Exchange Rates</h3>
+
+	<h4>Create Exchange Rate</h4>
+	<form method="POST" action="{% url exchange_rate_new %}">
+      {% csrf_token %}
+	  {{ exchange_rate_form.as_p }}
+	  <input type="submit" value="Create" class="btn primary"/>
+	</form>
+
+	<h4>Exchange Rate List</h4>
+	<table>
+	  <thead>
+	  <tr>
+	    <th>Source</th>
+	    <th>Destination</th>
+	    <th>Created</th>
+	    <th>Actions</th>
+	  </tr>
+	  </thead>
+	  <tbody>
+  	  {% for exchange in exchange_rates %}
+		<tr>
+		  <td>{{ exchange.source_repr }}</td>
+		  <td>{{ exchange.dest_repr }}</td>
+		  <td>{{ exchange.time_created }}</td>
+		  <td>
+		    <a href="#">Modify</a>
+			<a href="#">Remove</a>
+		  </td>
+		</tr>
+	  {% endfor %}
+	  </tbody>
+	</table>
+  </div>
+
   {% endblock %}
   </div>
+  </div>
+  </div>
 {% endblock %}
-
