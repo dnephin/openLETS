@@ -10,7 +10,7 @@ from openlets.openletsweb import web
 
 
 def index(request):
-	return web.render_context(request, 'index.html', 'login_form')
+	return web.render_context(request, 'index.html', processors=['login_form'])
 
 @login_required
 def home(request):

@@ -18,14 +18,14 @@ context_processors = {
 }
 
 
-def render_context(request, template, context=None, type='html', *args):
+def render_context(request, template, context=None, type='html', processors=()):
 	"""Render a tempate with a context.  args are lookedup
 	in `context_processors` and added to the context.
 
 	Supported types:
 		- html
 	"""
-	use_processors = [context_processors[arg] for arg in args]
+	use_processors = [context_processors[arg] for arg in processors]
 	context = context or {}
 
 	context = RequestContext(request, context or {}, use_processors)
