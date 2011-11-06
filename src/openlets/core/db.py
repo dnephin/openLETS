@@ -53,7 +53,7 @@ def get_recent_trans_for_user(user, days=10):
 	return models.TransactionRecord.objects.filter(
 		creator_person=user.person,
 		time_created__gte=earliest_day
-	).order_by('-time_created')
+	).order_by('-transaction_time')
 
 # TODO: tests
 def get_transfer_history(user, filters):
@@ -141,9 +141,9 @@ def confirm_trans_record(trans_record):
 		value=trans_record.value
 	)
 	transaction = models.Transaction()
-	confirm_record.transaction = trans_record.transaction = transaction
-
 	transaction.save()
+
+	confirm_record.transaction_id = trans_record.transaction_id = transaction.id
 	confirm_record.save()
 	trans_record.save()
 
@@ -155,7 +155,6 @@ def confirm_trans_record(trans_record):
 	)
 
 
-# TODO: I'd like this to be able to use the properties of a transfer object
 # TODO: tests!
 def update_balance(currency_type, provider, receiver):
 	"""Update or create a balance between two users for a currency. Should be
@@ -172,18 +171,19 @@ def update_balance(currency_type, provider, receiver):
 		balance.save()
 		return balance
 
-	balance_value = balance.value - currency_type.value
-	if (balance_value) < 0:
-		balance.value = abs(balance_value)
-		for personbalance in balance.persons:
+	balance.value -= currency_type.value
+	if (balance.value) < 0:
+		balance.value = abs(balance.value)
+		for personbalance in balance.personbalance_set.all():
 			personbalance.credited = not personbalance.credited
+			personbalance.save()
 
 	balance.save()
 	# TODO: does this cascade to the personbalance ?
 	return balance
 
 
-# TODO: complete this
+# TODO: tests
 def new_balance(currency_type, provider, receiver):
 	balance = models.Balance(
 		currency=currency_type.currency, 
@@ -193,14 +193,15 @@ def new_balance(currency_type, provider, receiver):
 	personbalancea = models.PersonBalance(
 		person=provider,
 		credited=False,
-		balance_id=balance.id
+		balance=balance
 	)
 	personbalanceb = models.PersonBalance(
 		person=receiver,
 		credited=True,
-		balance_id=balance.id
+		balance=balance
 	)
 	personbalancea.save()
 	personbalanceb.save()
+	balance.save()
 	return balance
 	

@@ -156,11 +156,11 @@ class Transaction(m.Model):
 
 	@property
 	def provider_record(self):
-		self.transaction_records.filter(from_receiver=False)
+		return self.transaction_records.get(from_receiver=False)
 
 	@property
 	def receiver_record(self):
-		self.transaction_records.filter(from_receiver=True)
+		return self.transaction_records.get(from_receiver=True)
 
 	@property
 	def provider(self):
@@ -217,7 +217,7 @@ class TransactionRecord(CurrencyMixin, m.Model):
 	@property
 	def status(self):
 		trans = self.transaction
-		return 'confirmed' if trans and trans.resolved else 'pending'
+		return 'confirmed' if trans and trans.time_confirmed else 'pending'
 
 	@property
 	def transaction_type(self):

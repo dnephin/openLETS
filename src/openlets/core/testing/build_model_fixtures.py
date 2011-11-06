@@ -18,7 +18,11 @@ currencies = []
 def build_users():
 	letter = letters.pop(random.randint(0, len(letters) - 1))
 	username = 'user%s' % letter
-	user = models.User(username=username, password='password')
+	user = models.User.objects.create_user(
+		username, 
+		'%s@example.com' % username, 
+		password='password'
+	)
 	user.save()
 	users.append(user)
 	return user
