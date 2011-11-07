@@ -5,6 +5,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import StrAndUnicode, force_unicode
 from django.forms import widgets as core_widgets
+from django.forms.forms import pretty_name
 
 
 class RadioButton(core_widgets.RadioInput):
@@ -31,4 +32,21 @@ class UnstyledRadioRenderer(core_widgets.RadioFieldRenderer):
 				u'\n'.join(u'%s' % force_unicode(w) for w in self)
 			)
 		)
+
+class PlaceholderTextInput(core_widgets.TextInput):
+	"""A text input that uses placeholder for its label."""
+
+	def render(self, name, value, attrs=None):
+		attrs = attrs or {}
+		# TODO: this overrides a label on a field, and shouldnt
+		attrs['placeholder'] = pretty_name(name)
+		return super(PlaceholderTextInput, self).render(name, value, attrs)
+
+class PlaceholderPasswordInput(core_widgets.PasswordInput):
+
+	def render(self, name, value, attrs=None):
+		attrs = attrs or {}
+		# TODO: this overrides a label on a field, and shouldnt
+		attrs['placeholder'] = pretty_name(name)
+		return super(PlaceholderPasswordInput, self).render(name, value, attrs)
 

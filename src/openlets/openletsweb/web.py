@@ -6,15 +6,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth import forms
 
-def login_form_processor(request):
-	"""Add 'login_form' to the context if the user is not logged in."""
-	if request.user.is_authenticated():
-		return {}
-	return {'login_form': forms.AuthenticationForm()}
-
-
 context_processors = {
-	'login_form':	login_form_processor
 }
 
 

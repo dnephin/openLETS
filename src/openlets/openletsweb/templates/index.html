@@ -4,7 +4,7 @@
       <div class="hero-unit">
 	    <h1>Welcome</h1>
 		<p>openLETS is a local exchange trading system.  Use it to trade with your friends and community.</p>
-        <p><a class="btn primary large">Learn more &raquo;</a></p>
+        <p><a class="btn primary large" href="#about">Learn more &raquo;</a></p>
       </div>
 
       <div class="row">
@@ -20,13 +20,23 @@
 		  <p>Register with openLETS.net to see how it works, trade goods and 
 		  exchange services with your friends and community. 
 		  </p>
-          <p><a class="btn" href="#">Register &raquo;</a></p>
+
+		  <form method="POST" action="{% url user_new %}">
+   		    {% csrf_token %}
+		    {{ user_form.as_plain }}
+            <p><input type="submit" class="btn" value="Register &raquo;"></p>
+		  </form>
        </div>
         <div class="span-one-third">
           <h2>Login</h2>
 		  <p>Already using openlets?</p>
-		  {{ login_form.as_ul }}
-          <p><a class="btn" href="#">Login&raquo;</a></p>
+
+		  <form method="POST" action="{% url django.contrib.auth.views.login %}">
+		    {% csrf_token %}
+		    {{ login_form.as_plain }}
+            <p><input type="submit" class="btn" value="Login &raquo;"></p>
+		  </form>
+
         </div>
       </div>
 

@@ -1,6 +1,35 @@
+from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth import forms as auth_forms
 from django import forms
 from openlets.core import models
 from openlets.openletsweb import widgets
+
+
+class PlainForm(object):
+	"""Mixin for adding an as_plain render method."""
+
+	def as_plain(self):
+		"""Render the form without labels and help text."""
+		return self._html_output(
+			normal_row = u'<p%(html_class_attr)s>%(field)s</p>',
+			error_row = u'%s',
+			row_ender = '</p>',
+			help_text_html = u'%s',
+			errors_on_separate_row = True)
+
+class PlaceholderField(object):
+	"""A mixin for fields that uses placeholder for label."""
+
+	def widget_attrs(self, widget):
+		attrs = super(PlaceholderField, self).widget_attrs(widget) or {}
+		attrs['placeholder'] = self.label
+		return attrs
+
+class PlaceholderChar(PlaceholderField, forms.CharField):
+	widget = widgets.PlaceholderTextInput
+
+class PlaceholderEmail(PlaceholderField, forms.EmailField):
+	widget = widgets.PlaceholderTextInput
 
 
 class TransactionRecordForm(forms.ModelForm):
@@ -146,9 +175,20 @@ class ExchangeRateForm(forms.ModelForm):
 		return model
 
 
-class UserForm(forms.ModelForm):
+class UserForm(forms.ModelForm, PlainForm):
 	"""A form to edit user details."""
 
 	class Meta:
 		model = models.User
-		fields = ('username', 'first_name', 'last_name', 'email')
+		fields = ('username', 'first_name', 'last_name', 'email', 'password')
+
+	username = PlaceholderChar(max_length=30)
+	first_name = PlaceholderChar(max_length=30)
+	last_name = PlaceholderChar(max_length=30)
+	email = PlaceholderEmail()
+	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput)
+
+class LoginForm(auth_forms.AuthenticationForm, PlainForm):
+	
+	username = PlaceholderChar(max_length=30)
+	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput) 

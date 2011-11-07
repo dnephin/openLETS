@@ -10,7 +10,14 @@ from openlets.openletsweb import web
 
 
 def index(request):
-	return web.render_context(request, 'index.html', processors=['login_form'])
+	if request.user.is_authenticated():
+		return redirect('home')
+
+	context = {
+		'login_form': forms.LoginForm(),
+		'user_form': forms.UserForm(web.form_data(request))
+	}
+	return web.render_context(request, 'index.html', context=context)
 
 @login_required
 def home(request):
@@ -99,6 +106,10 @@ def user_update(request):
 		messages.success(request, 'Account updated.')
 		return redirect('settings')
 	return settings(request)
+
+@require_POST
+def user_new(request):
+	pass
 
 @login_required
 @require_POST
