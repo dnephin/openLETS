@@ -31,7 +31,7 @@ class CurrencyMixin(m.Model):
 
 
 class Person(m.Model):
-	""" """
+	"""A person. This model is the auth profile model."""
 	user = m.OneToOneField(User)
 	default_currency = currency_field(null=True, blank=True)
 
@@ -84,7 +84,7 @@ class Balance(CurrencyMixin, m.Model):
 
 
 class PersonBalance(m.Model):
-	"""A join table to link Person one of their Balances."""
+	"""A join table to link Person to one of their Balances."""
 	person = m.ForeignKey('Person')
 	balance = m.ForeignKey('Balance')
 	credited = m.BooleanField()
@@ -106,7 +106,7 @@ class PersonBalance(m.Model):
 		return "%s%s" % (symbol, self.balance.value_repr)
 
 class ExchangeRate(m.Model):
-	""" """
+	"""A rate of exchange between two currencies, offered by a person."""
 	person = m.ForeignKey('Person')
 	source_currency = currency_field() 
 	dest_currency = currency_field() 
@@ -115,7 +115,7 @@ class ExchangeRate(m.Model):
 	time_created = m.DateTimeField(auto_now_add=True)
 
 	class Meta:
-		unique_together = ('source_currency', 'dest_currency')
+		unique_together = ('person', 'source_currency', 'dest_currency')
 
 	def __unicode__(self):
 		return "%s Exchange Rate: %s to %s" % (
@@ -158,7 +158,7 @@ class Transaction(m.Model):
 	def value(self):
 		if not self.time_confirmed:
 			raise ValueError("Transaction not yet resolved.")
-		return self.transaction_records.all()[0].currency
+		return self.transaction_records.all()[0].value
 
 	@property
 	def persons(self):
@@ -185,7 +185,7 @@ class Transaction(m.Model):
 class TransactionRecord(CurrencyMixin, m.Model):
 	"""
 	A record of the transaction submitted by a user. A transaction is not
-	official until confirmed by both parties having submitted their own
+	complete until confirmed by both parties having submitted their own
 	transaction record.
 	"""
 	transaction = m.ForeignKey(
@@ -293,7 +293,7 @@ class Resolution(CurrencyMixin, m.Model):
 
 
 class PersonResolution(m.Model):
-	"""A join table to link Person one of their Resolutions."""
+	"""A join table to link Person to one of their Resolutions."""
 	person = m.ForeignKey('Person')
 	resolution = m.ForeignKey('Resolution')
 	credited = m.BooleanField()

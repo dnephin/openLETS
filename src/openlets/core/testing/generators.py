@@ -22,4 +22,8 @@ def rand_bool():
 def rand_date(min_days_ago=1, max_days_ago=100):
 	days = random.randint(min_days_ago, max_days_ago)
 	return datetime.now() - timedelta(days, random.randint(0, 60*60*24))
+
+letters = list(string.letters)
+def rand_char(pool=letters):
+	return pool.pop(random.randint(0, len(pool) - 1))
 	

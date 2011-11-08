@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from core import models
 
-def get_balance(persona, personb, currency=None):
+def get_balance(persona, personb, currency):
 	"""Load a balance between two persons. 
 	"""
 	return (models.PersonBalance.objects
@@ -45,7 +45,7 @@ def get_pending_trans_for_user(user):
 		transaction__isnull=True
 	)
 
-def get_recent_trans_for_user(user, days=10):
+def get_recent_trans_for_user(user, days=10, limit=15):
 	"""Get recent transaction records for the user.  These transaction records
 	may be confirmed.
 	"""
@@ -53,7 +53,7 @@ def get_recent_trans_for_user(user, days=10):
 	return models.TransactionRecord.objects.filter(
 		creator_person=user.person,
 		time_created__gte=earliest_day
-	).order_by('-transaction_time')
+	).order_by('-transaction_time')[:limit]
 
 def get_exchange_rates(user):
 	"""Get exchange rates for the user."""

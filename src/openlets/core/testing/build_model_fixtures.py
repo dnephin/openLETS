@@ -8,15 +8,17 @@ import settings
 from django.core.management  import setup_environ
 setup_environ(settings)
 
-from core.testing.generators import rand_string, rand_bool, rand_date
+from core.testing.generators import rand_string, rand_bool, rand_date, rand_char
 from core import models, db
 
-letters = list(string.letters)
 users = []
 currencies = []
 
+user_pool = list(string.letters[26:])
+currency_pool = list(string.letters[26:])
+
 def build_users():
-	letter = letters.pop(random.randint(0, len(letters) - 1))
+	letter = rand_char(user_pool)
 	username = 'user%s' % letter
 	user = models.User.objects.create_user(
 		username, 
@@ -27,9 +29,10 @@ def build_users():
 	users.append(user)
 	return user
 
-def build_currency():
+def build_currency(currency_pool=currency_pool):
+	letter = rand_char(currency_pool)
 	currency = models.Currency(
-		name=rand_string(), 
+		name='currency%s' % letter,
 		description=rand_string(200),
 		decimal_places=random.randint(0,3)
 	)
@@ -53,24 +56,42 @@ def build_pending_trans(users=users, currencies=currencies):
 	trans_record.save()
 	return trans_record
 
-def build_transactions(num=12):
+def build_transaction():
 	"""Build completed transactions. Requires users and currencies to be filled.
 	"""
 	trans_record = build_pending_trans()
 	db.confirm_trans_record(trans_record)
 
+def build_exchange_rate(users=users, currencies=currencies):
+	"""Build exchange rates."""
+	user = random.choice(users)
+	currencys, currencyd = random.sample(currencies, 2)
+	values, valued = random.randint(0, 200), random.randint(0, 200)
+	exchange_rate = models.ExchangeRate(
+		person=user.person,
+		source_currency=currencys,
+		dest_currency=currencyd,
+		source_rate=values,
+		dest_rate=valued
+	)
+	exchange_rate.save()
+	return exchange_rate
 
 builder_counts = [
-	(build_users, 5), 
+	(build_users, 10), 
 	(build_currency, 3),
-	(build_pending_trans, 8),
-	(build_transactions, 12),
+	(build_pending_trans, 25),
+	(build_transaction, 100),
+	(build_exchange_rate, 10),
 ]
 
 def build_all():
 	for builder, count in builder_counts:
 		for i in range(count):
-			builder()
+			try:
+				builder()
+			except Exception, e:
+				print "Problem building fixture: %s" % e
 
 if __name__ == "__main__":
 	build_all()

@@ -11,32 +11,31 @@ class DBTestCase(TestCase):
 	fixtures = ['testing/base.json']
 	
 	def test_get_balance(self):
-		balance = db.get_balance(2,3)
-		self.assertEqual(balance.value, 14)
-		self.assertEqual(set(u.id for u in balance.persons.all()), set([2,3]))
+		balance = db.get_balance(7, 10, 3)
+		self.assertEqual(balance.value, 62)
+		self.assertEqual(
+			set(u.id for u in balance.persons.all()), 
+			set([7,10])
+		)
 
 	def test_get_pending_trans_for_user(self):
-		user = models.User.objects.get(id=2)
+		user = models.User.objects.get(id=3)
 		records = list(db.get_pending_trans_for_user(user))
-		self.assertEqual(len(records), 2)
+		self.assertEqual(len(records), 3)
 		for record in records:
-			self.assertRaises(
-				models.Transaction.DoesNotExist,
-				lambda: record.provider_transaction
-			)
-			self.assertRaises(
-				models.Transaction.DoesNotExist,
-				lambda: record.receiver_transaction
-			)
+			assert not record.transaction
 
 	def test_get_recent_trans_for_user(self):
-		user = models.User.objects.get(id=2)
-		recent_trans = db.get_recent_trans_for_user(user)
-		self.assertEqual(len(recent_trans), 4)
+		user = models.User.objects.get(id=3)
+		recent_trans = db.get_recent_trans_for_user(user, limit=20)
+		self.assertEqual(len(recent_trans), 18)
 		last_trans = None
 		for trans in recent_trans:
 			if last_trans:
-				assert trans.time_created < last_trans.time_created
+				self.assertLessEqual(
+					trans.transaction_time, 
+					last_trans.transaction_time
+				)
 			last_trans = trans
 			assert trans.status
 
