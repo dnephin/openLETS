@@ -3,19 +3,23 @@ from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import forms as auth_forms
 from django.contrib import messages
+from django.conf import settings as config
 
 from openlets.core import db
 from openlets.openletsweb import forms
 from openlets.openletsweb import web
+from openlets.openletsweb import models
 
 
 def index(request):
 	if request.user.is_authenticated():
 		return redirect('home')
 
+	intro = models.Content.objects.get(name='intro', site=config.SITE_ID)
 	context = {
 		'login_form': forms.LoginForm(),
-		'user_form': forms.UserForm(web.form_data(request))
+		'user_form': forms.UserCreateForm(web.form_data(request)),
+		'intro': intro 
 	}
 	return web.render_context(request, 'index.html', context=context)
 
@@ -43,7 +47,7 @@ def home(request):
 	# Currency balances
 	context['balances'] = db.get_balances(request.user)
 
-	# TODO: notifications for recent changes
+	# TODO: notifications for recent news, transactions, balances
 	context['notifications'] = None
 
 	return web.render_context(request, 'home.html', context=context)
@@ -55,7 +59,7 @@ def settings(request):
 	# TODO:usage statistics
 
 	# User account form
-	context['user_form'] = forms.UserForm(
+	context['user_form'] = forms.UserEditForm(
 		web.form_data(request),
 		instance=request.user
 	)
@@ -100,7 +104,7 @@ def person_update(request):
 @login_required
 @require_POST
 def user_update(request):
-	form = forms.UserForm(request.POST, instance=request.user)
+	form = forms.UserEditForm(request.POST, instance=request.user)
 	if form.is_valid():
 		form.save()
 		messages.success(request, 'Account updated.')
@@ -144,3 +148,10 @@ def transaction_confirm(request, trans_record_id):
 def transaction_modify(request, trans_record_id):
 	"""Modify a transaction record from another person."""
 
+
+def content_view(request, name):
+	"""Get a piece of content by name."""
+	content = models.Content.objects.get(name=name, site=config.SITE_ID)
+	return web.render_context(request, 'content.html',
+		context={'content': content}
+	)

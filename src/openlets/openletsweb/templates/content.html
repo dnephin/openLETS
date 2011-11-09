@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load markup %}
+
+{% block container %}
+  <div class="content">
+	{{ content.body|markdown }}
+
+	<hr>
+	<p>
+	  <small>
+	    <strong>Last Updated:</strong> {{ content.time_updated }} 
+		&mdash; <strong>{{ content.author }}</strong>
+      </small>
+	</p>
+  </div>
+{% endblock %}

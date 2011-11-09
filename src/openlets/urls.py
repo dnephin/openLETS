@@ -33,6 +33,8 @@ urlpatterns = patterns('',
 		'openletsweb.views.exchange_rate_new', 
 		name='exchange_rate_new'),
 
+	url(r'^about$', 'openletsweb.views.content_view', {'name': 'about'}, 'about'),
+	url(r'^contact$', 'openletsweb.views.content_view', {'name': 'contact'}, 'contact'),
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),

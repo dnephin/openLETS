@@ -43,9 +43,9 @@
               <li><a href="{% url transaction_list %}">Transactions</a></li>
               <li><a href="{% url settings %}">Settings</a></li>
 			  {% endif %}
-              <li><a href="#">About</a></li>
+              <li><a href="{% url about %}">About</a></li>
               <li><a href="#">News</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><a href="{% url contact %}">Contact</a></li>
 			{% endblock %}
           </ul>
 		  {% if user.is_authenticated %}

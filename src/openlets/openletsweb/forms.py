@@ -175,8 +175,8 @@ class ExchangeRateForm(forms.ModelForm):
 		return model
 
 
-class UserForm(forms.ModelForm, PlainForm):
-	"""A form to edit user details."""
+class UserCreateForm(forms.ModelForm, PlainForm):
+	"""A form to create a new user."""
 
 	class Meta:
 		model = models.User
@@ -187,6 +187,15 @@ class UserForm(forms.ModelForm, PlainForm):
 	last_name = PlaceholderChar(max_length=30)
 	email = PlaceholderEmail()
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput)
+
+
+class UserEditForm(forms.ModelForm, PlainForm):
+	"""A form to edit user details."""
+
+	class Meta:
+		model = models.User
+		fields = ('username', 'first_name', 'last_name', 'email')
+
 
 class LoginForm(auth_forms.AuthenticationForm, PlainForm):
 	
