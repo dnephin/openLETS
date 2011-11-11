@@ -5,8 +5,10 @@ from openlets.core import models
 from openlets.openletsweb import widgets
 
 
-class PlainForm(object):
-	"""Mixin for adding an as_plain render method."""
+class BaseForm(object):
+	"""Mixin for adding an as_plain render method and an as_p
+	render that works with bootstrap default styles.
+	"""
 
 	def as_plain(self):
 		"""Render the form without labels and help text."""
@@ -16,6 +18,20 @@ class PlainForm(object):
 			row_ender = '</p>',
 			help_text_html = u'%s',
 			errors_on_separate_row = True)
+
+	def as_p(self):
+		"""Changes the default as_p rendering by adding a div around 
+		the field.
+		"""
+		return self._html_output(
+			normal_row=u'<p%(html_class_attr)s>'
+				'%(label)s <div class="input">%(field)s</div>'
+				'%(help_text)s</p>',
+			error_row=u'%s',
+			row_ender='</p>',
+			help_text_html=u' <span class="helptext">%s</span>',
+			errors_on_separate_row=True)
+
 
 class PlaceholderField(object):
 	"""A mixin for fields that uses placeholder for label."""
@@ -32,7 +48,7 @@ class PlaceholderEmail(PlaceholderField, forms.EmailField):
 	widget = widgets.PlaceholderTextInput
 
 
-class TransactionRecordForm(forms.ModelForm):
+class TransactionRecordForm(BaseForm, forms.ModelForm):
 	"""A Form for creating new TransactionRecord objects."""
 
 	class Meta:
@@ -103,7 +119,7 @@ class TransactionRecordForm(forms.ModelForm):
 		return trans_rec
 
 
-class TransferListForm(forms.Form):
+class TransferListForm(BaseForm, forms.Form):
 	"""A form for validating filters for viewing lists of transactions
 	and resolutions.
 	"""
@@ -152,7 +168,7 @@ class TransferListForm(forms.Form):
 	currency = forms.ModelChoiceField(models.Currency.objects.all(), required=False)
 
 
-class PersonForm(forms.ModelForm):
+class PersonForm(BaseForm, forms.ModelForm):
 	"""A form to edit Person details."""
 
 	class Meta:
@@ -160,7 +176,7 @@ class PersonForm(forms.ModelForm):
 		fields = ('default_currency',)
 
 
-class ExchangeRateForm(forms.ModelForm):
+class ExchangeRateForm(BaseForm, forms.ModelForm):
 	"""A form to create or edit Exchange Rates."""
 
 	class Meta:
@@ -175,7 +191,7 @@ class ExchangeRateForm(forms.ModelForm):
 		return model
 
 
-class UserCreateForm(forms.ModelForm, PlainForm):
+class UserCreateForm(BaseForm, forms.ModelForm):
 	"""A form to create a new user."""
 
 	class Meta:
@@ -189,7 +205,7 @@ class UserCreateForm(forms.ModelForm, PlainForm):
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput)
 
 
-class UserEditForm(forms.ModelForm, PlainForm):
+class UserEditForm(BaseForm, forms.ModelForm):
 	"""A form to edit user details."""
 
 	class Meta:
@@ -197,7 +213,7 @@ class UserEditForm(forms.ModelForm, PlainForm):
 		fields = ('username', 'first_name', 'last_name', 'email')
 
 
-class LoginForm(auth_forms.AuthenticationForm, PlainForm):
+class LoginForm(auth_forms.AuthenticationForm, BaseForm):
 	
 	username = PlaceholderChar(max_length=30)
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput) 

@@ -15,7 +15,7 @@ class RadioButton(core_widgets.RadioInput):
 		"""Largely taken from parent class."""
 		choice_label = conditional_escape(force_unicode(self.choice_label))
 		return mark_safe(
-			u'%s<span> %s</span>' % (self.tag(), choice_label)
+			u'<li><label>%s<span> %s</span></label></li>' % (self.tag(), choice_label)
 		)
 
 
@@ -28,7 +28,7 @@ class UnstyledRadioRenderer(core_widgets.RadioFieldRenderer):
 
 	def render(self):
 		return mark_safe(
-			u'<ul class="unstyled">\n%s\n</ul>' % (
+			u'<ul class="inputs-list">\n%s\n</ul>' % (
 				u'\n'.join(u'%s' % force_unicode(w) for w in self)
 			)
 		)
