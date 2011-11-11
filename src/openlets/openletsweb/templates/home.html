@@ -82,7 +82,9 @@
 	<form method="post" action="{% url transaction_new %}">
 		{% csrf_token %}
 		{{ new_transaction_form.as_p }}
-		<input type="submit" class="btn primary" value="Submit">
+		<div class="input">
+		  <input type="submit" class="btn primary" value="Submit">
+		</div>
 	</form>
 
   </div>

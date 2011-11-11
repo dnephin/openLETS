@@ -53,7 +53,19 @@ class TransactionRecordForm(BaseForm, forms.ModelForm):
 
 	class Meta:
 		model = models.TransactionRecord
-		fields = ('currency', 'transaction_time', 'target_person', 'notes')
+		fields = (
+			'transaction_time', 
+			'target_person', 
+			'from_receiver',
+			'currency',
+			'value',
+			'notes',
+		)
+		widgets = {
+			'transaction_time': forms.TextInput(
+				attrs={'class': 'medium'}
+			),
+		}
 
 	from_receiver =  forms.TypedChoiceField(
 		label="Type",
@@ -65,7 +77,9 @@ class TransactionRecordForm(BaseForm, forms.ModelForm):
 		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 		initial='payment'
 	)
-	value = forms.CharField(max_length=200)
+	value = forms.CharField(max_length=200, 
+		widget=forms.TextInput(attrs={'class': 'mini'})
+	)
 
 	def clean_value(self):
 		"""Clean a value. Ensure that the value is numeric."""
@@ -111,7 +125,6 @@ class TransactionRecordForm(BaseForm, forms.ModelForm):
 		data = self.cleaned_data
 
 		trans_rec.value = data['value']
-		trans_rec.from_receiver = data['from_receiver']
 		trans_rec.creator_person = active_user.person
 
 		if commit:
@@ -181,7 +194,16 @@ class ExchangeRateForm(BaseForm, forms.ModelForm):
 
 	class Meta:
 		model = models.ExchangeRate
-		exclude = ('person', 'time_created')
+		fields = (
+			'source_currency', 'source_rate',
+			'dest_currency', 'dest_rate'
+		)
+		widgets = dict.fromkeys(
+			('source_rate', 'dest_rate'), 
+			forms.TextInput(attrs={'class': 'mini'})
+		)
+		# TODO: currency value mixin for rates (so decimals can be used)
+		# TODO: handle duplicate exchange rates (see model unique constraint)
 
 	def save(self, active_user, commit=True):
 		model = super(ExchangeRateForm, self).save(commit=False)
@@ -217,3 +239,6 @@ class LoginForm(auth_forms.AuthenticationForm, BaseForm):
 	
 	username = PlaceholderChar(max_length=30)
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput) 
+
+class PasswordChangeForm(BaseForm, auth_forms.PasswordChangeForm):
+	pass

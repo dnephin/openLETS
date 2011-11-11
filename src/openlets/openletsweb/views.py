@@ -1,7 +1,7 @@
+import datetime
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import forms as auth_forms
 from django.contrib import messages
 from django.conf import settings as config
 
@@ -33,7 +33,8 @@ def home(request):
 	context['new_transaction_form'] = forms.TransactionRecordForm(
 		web.form_data(request),
 		initial={
-			'currency': request.user.person.default_currency
+			'currency': request.user.person.default_currency,
+			'transaction_time': datetime.datetime.now().strftime('%x %X')
 		}
 	)
 
@@ -63,7 +64,7 @@ def settings(request):
 		web.form_data(request),
 		instance=request.user
 	)
-	context['password_form'] = auth_forms.PasswordChangeForm(
+	context['password_form'] = forms.PasswordChangeForm(
 		web.form_data(request)
 	)
 

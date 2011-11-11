@@ -49,14 +49,18 @@
 	<form method="POST" action="{% url user_update %}">
       {% csrf_token %}
   	  {{ user_form.as_p }}
-	  <input type="submit" value="Save" class="btn primary"/>
+	  <div class="input">
+	    <input type="submit" value="Save" class="btn primary"/>
+	  </div>
 	</form>
 
 	<h4>Password</h4>
 	<form method="POST" action="{% url django.contrib.auth.views.password_change %}">
       {% csrf_token %}
 	  {{ password_form.as_p }}
-	  <input type="submit" value="Update password" class="btn primary"/>
+	  <div class="input">
+	    <input type="submit" value="Update password" class="btn primary"/>
+	  </div>
 	</form>
   </div>
 
@@ -66,7 +70,9 @@
 	<form method="POST" action="{% url person_update %}">
       {% csrf_token %}
 	  {{ person_form.as_p }}
-	  <input type="submit" value="Update" class="btn primary"/>
+	  <div class="input">
+	    <input type="submit" value="Update" class="btn primary"/>
+	  </div>
 	</form>
   </div>
 
@@ -78,7 +84,9 @@
 	<form method="POST" action="{% url exchange_rate_new %}">
       {% csrf_token %}
 	  {{ exchange_rate_form.as_p }}
-	  <input type="submit" value="Create" class="btn primary"/>
+	  <div class="input">
+	    <input type="submit" value="Create" class="btn primary"/>
+	  </div>
 	</form>
 
 	<h4>Exchange Rate List</h4>
