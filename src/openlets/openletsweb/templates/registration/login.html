@@ -1,11 +1,19 @@
 {% extends "base.html" %}
 
 {% block container %}
+<h1>Login</h1>
+<p>You must login to view this page or perform this action.</p>
+
 <form method="post" action="{% url django.contrib.auth.views.login %}">
-{% csrf_token %}
-{{ form.as_ul }}
-<input type="submit" value="login" class="btn" />
-<input type="hidden" name="next" value="{{ next }}" />
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="input">
+   	<input type="submit" value="login" class="btn primary" />
+  </div>
+  <input type="hidden" name="next" value="{{ next }}" />
 </form>
+<p>Are you new?  You can <a href="{% url index %}">register</a> for an account.</p>
+<p>Forget your password? <a href="{% url password_reset %}">Reset</a> your password to login.</p>
+
 
 {% endblock %}

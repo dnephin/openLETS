@@ -5,7 +5,7 @@
 
     <div class="row">
   {% block sidebar %}
-  <div class="span3">
+  <div class="span3 fixed">
     <div class="well">
       <h5>Menu</h5>
       <ul class="unstyled">
@@ -20,7 +20,7 @@
   </div>
   {% endblock %}
 
-  <div class="span13">
+  <div class="span13 offset3">
 
   {% block messages %}
 	{% if messages %}
@@ -138,7 +138,7 @@
 		  <td>{{ balance.relative_value }}</td>
 		  <td>{{ balance.balance.time_updated }}</td>
 		  <td>
-		    <a href="{% url transaction_list %}?person={{ balance.other_person.id }}">History</a>
+		    <a href="{% url transaction_list %}?person={{ balance.other_person.id }}&currency={{ balance.balance.currency.id }}">History</a>
 		  </td>
 		</tr>
 		{% endfor %}

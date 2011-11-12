@@ -240,6 +240,12 @@ class TransactionRecord(CurrencyMixin, m.Model):
 		"""The type of transaction relative to the target user."""
 		return 'payment' if self.from_receiver else 'charge'
 
+	@property
+	def other_transaction_record(self):
+		if not self.transaction:
+			raise ValueError("No transaction yet.")
+		return self.transaction.transaction_records.exclude(id=self.id).get()
+
 
 class Currency(m.Model):
 	"""A currency that can be used for exchange."""

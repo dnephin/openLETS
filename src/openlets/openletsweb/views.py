@@ -9,6 +9,7 @@ from openlets.core import db
 from openlets.openletsweb import forms
 from openlets.openletsweb import web
 from openlets.openletsweb import models
+from openlets.openletsweb.util import trans_matcher 
 
 
 def index(request):
@@ -22,6 +23,28 @@ def index(request):
 		'intro': intro 
 	}
 	return web.render_context(request, 'index.html', context=context)
+
+
+
+def build_pending_trans_records(request):
+	"""Supplement the pending trans records with a modify form
+	and attempt to link them to any trans_records created by the
+	user.
+	"""
+	recent_pending = db.get_recent_trans_for_user(
+		request.user, limit=100, pending_only=True)
+	pending_trans_records = db.get_pending_trans_for_user(request.user)
+	for trans_record in pending_trans_records:
+		cur_user_trans_record = None
+		if trans_record.transaction:
+			cur_user_trans_record = trans_record.other_trans_record
+		trans_record.modify_form = forms.TransactionRecordForm(
+			instance=cur_user_trans_record
+		)
+		trans_record.approve_with_record = trans_matcher.find_similar(
+			recent_pending, trans_record
+		)
+		yield trans_record
 
 @login_required
 def home(request):
@@ -38,9 +61,7 @@ def home(request):
 		}
 	)
 
-	# TODO: link to any records for the user that may be for the same transaction
-	# Pending transaction records
-	context['pending_trans_records'] = db.get_pending_trans_for_user(request.user)
+	context['pending_trans_records'] = build_pending_trans_records(request)
 
 	# Recent transactions, that may be confirmed
 	context['recent_trans_records'] = db.get_recent_trans_for_user(request.user)

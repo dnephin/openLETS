@@ -235,7 +235,7 @@ class UserEditForm(BaseForm, forms.ModelForm):
 		fields = ('username', 'first_name', 'last_name', 'email')
 
 
-class LoginForm(auth_forms.AuthenticationForm, BaseForm):
+class LoginForm(BaseForm, auth_forms.AuthenticationForm):
 	
 	username = PlaceholderChar(max_length=30)
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput) 
