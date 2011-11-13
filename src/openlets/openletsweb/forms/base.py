@@ -41,11 +41,10 @@ class BaseFormMixin(object):
 		"""
 		return self._html_output(
 			normal_row=u'<p%(html_class_attr)s>'
-				'%(label)s <div class="input">%(field)s</div>'
-				'%(help_text)s</p>',
+				'%(label)s <div class="input">%(field)s %(help_text)s</div></p>',
 			error_row=u'%s',
 			row_ender='</p>',
-			help_text_html=u' <span class="helptext">%s</span>',
+			help_text_html=u' <span class="help-block">%s</span>',
 			errors_on_separate_row=True)
 
 	def _list_html_output_fields(self, part, fields):

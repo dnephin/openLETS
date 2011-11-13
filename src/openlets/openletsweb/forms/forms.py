@@ -115,6 +115,7 @@ class TransferListForm(BaseFormMixin, forms.Form):
 	"""A form for validating filters for viewing lists of transactions
 	and resolutions.
 	"""
+	day_field_attrs = {'data-min': 1, 'data-max': 365, 'placeholder': 'All'}
 
 	_parts = {
 		'radios': ['transfer_type', 'transaction_type', 'status'],
@@ -149,20 +150,23 @@ class TransferListForm(BaseFormMixin, forms.Form):
 		required=False,
 		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 	)
+
+
 	# Transaction time in days
 	transaction_time = forms.IntegerField(
-		min_value=1, 
-		max_value=365, 
-		required=False, 
+		min_value=1,
+		max_value=365,
+		required=False,
 		initial=30,
-		widget=forms.TextInput(attrs={'class': 'slider'})
+		widget=widgets.JUISlider(attrs=day_field_attrs)
 	)
 	# Confirmed Time in days
 	confirmed_time = forms.IntegerField(
-		min_value=1, 
-		max_value=365, 
-		required=False, 
-		widget=forms.TextInput(attrs={'class': 'slider'})
+		min_value=1,
+		max_value=365,
+		required=False,
+		initial=100,
+		widget=widgets.JUISlider(attrs=day_field_attrs)
 	)
 	currency = forms.ModelChoiceField(models.Currency.objects.all(), required=False)
 

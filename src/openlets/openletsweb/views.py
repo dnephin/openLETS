@@ -196,6 +196,7 @@ def transaction_confirm(request, trans_record_id):
 @require_POST
 def transaction_modify(request, trans_record_id):
 	"""Modify a transaction record from another person."""
+	# TODO: load existing matching transaction
 	form = forms.TransactionRecordForm(request.POST)
 	if form.is_valid():
 		form.save(request.user)

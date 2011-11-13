@@ -5,6 +5,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import StrAndUnicode, force_unicode
 from django.forms import widgets as core_widgets
+from django.forms.util import flatatt
 from django.forms.forms import pretty_name
 
 
@@ -49,4 +50,28 @@ class PlaceholderPasswordInput(core_widgets.PasswordInput):
 		# TODO: this overrides a label on a field, and shouldnt
 		attrs['placeholder'] = pretty_name(name)
 		return super(PlaceholderPasswordInput, self).render(name, value, attrs)
+
+class JUISlider(core_widgets.TextInput):
+	"""A JQuery UI slider widget for integer fields."""
+
+	default_attrs = {
+		'class': 'slider-input small',
+		'readonly': 'readonly'
+	}
+
+	def render(self, name, value, attrs=None):
+		attrs = dict(self.default_attrs)
+		attrs.update(attrs or {})
+		attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+		if value:
+			attrs['value'] = force_unicode(self._format_value(value))
+
+		return mark_safe(
+			"<span class='slider-label'>Include days:</span>"
+			"<input %s/>" % flatatt(attrs) +
+			"<div class='slider'></div>"
+		)
+
+
+
 
