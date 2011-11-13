@@ -2,6 +2,7 @@ import datetime
 import json
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
+from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings as config
@@ -137,7 +138,23 @@ def user_update(request):
 
 @require_POST
 def user_new(request):
-	pass
+	form = forms.UserCreateForm(request.POST)
+	if form.is_valid():
+		data = form.cleaned_data
+		user = models.User.objects.create_user(
+			data['username'],
+			data['email'],
+			data['password']
+		)
+		user.first_name = data['first_name']
+		user.last_name = data['last_name']
+		user.save()
+		user = auth.authenticate(username=data['username'], password=data['password'])
+		auth.login(request, user)
+		return redirect('home')
+
+	# TODO: error message
+	return index(request)
 
 @login_required
 @require_POST
