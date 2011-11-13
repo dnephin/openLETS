@@ -1,9 +1,11 @@
 import datetime
+import json
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings as config
+from django.http import HttpResponse
 
 from openlets.core import db
 from openlets.openletsweb import forms
@@ -177,3 +179,21 @@ def content_view(request, name):
 	return web.render_context(request, 'content.html',
 		context={'content': content}
 	)
+
+
+def export_data(request):
+	"""Export all data for a user."""
+	data = {
+		'balances': [
+			balance.export_data() for balance in db.get_balances(request.user)
+		],
+		'transfers': [
+			transfer.export_data() for transfer in 
+			db.get_transfer_history(request.user, {})
+		],
+		'exchange_rates': [
+			rate.export_data() for rate in db.get_exchange_rates(request.user)
+		]
+	}
+	return HttpResponse(json.dumps(data), mimetype="application/json")
+

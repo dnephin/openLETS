@@ -102,8 +102,24 @@ class PersonBalance(m.Model):
 
 	@property
 	def relative_value(self):
-		symbol = '' if self.credited else '-'
-		return "%s%s" % (symbol, self.balance.value_repr)
+		value = self.balance.value
+		return self.balance.currency.value_of(value if self.credited else -value)
+
+	@property
+	def relative_value_repr(self):
+		value = self.balance.value
+		value = value if self.credited else -value
+		return self.balance.currency.value_repr(value)
+
+	def export_data(self):
+		return {
+			'person': '%s' %self.other_person,
+			'balance': {
+				'currency': '%s' % self.balance.currency,
+				'value': '%s' % self.relative_value
+			},
+			'last_updated': self.balance.time_updated.strftime(DATE_FMT)
+		}
 
 class ExchangeRate(m.Model):
 	"""A rate of exchange between two currencies, offered by a person."""
@@ -131,6 +147,28 @@ class ExchangeRate(m.Model):
 	@property
 	def dest_repr(self):
 		return self.dest_currency.value_repr(self.dest_rate)
+
+	@property
+	def source_value(self):
+		return self.source_currency.value_of(self.source_rate)
+
+	@property
+	def dest_value(self):
+		return self.dest_currency.value_of(self.dest_rate)
+
+	def export_data(self):
+		return {
+			'source': {
+				'currency': '%s' % self.source_currency,
+				'rate': '%s' % self.source_value
+			},
+			'destination': {
+				'currency': '%s' % self.dest_currency,
+				'rate': '%s' % self.dest_value
+			},
+			'time_created': self.time_created.strftime(DATE_FMT)
+		}
+
 
 class Transaction(m.Model):
 	"""A transaction between two people."""
@@ -246,6 +284,24 @@ class TransactionRecord(CurrencyMixin, m.Model):
 			raise ValueError("No transaction yet.")
 		return self.transaction.transaction_records.exclude(id=self.id).get()
 
+	def export_data(self):
+		time_confirmed = None
+		if self.status == 'confirmed':
+			time_confirmed = self.transaction.time_confirmed.strftime(DATE_FMT)
+
+		return {
+			'person': '%s' % self.target_person,
+			'transfer_type': 'Transaction',
+			'status': self.status,
+			'transaction_type': self.transaction_type,
+			'amount': {
+				'value': '%s' % self.value_str,
+				'currency': '%s' % self.currency
+			},
+			'time': self.transaction_time.strftime(DATE_FMT),
+			'time_confirmed': time_confirmed,
+		}
+
 
 class Currency(m.Model):
 	"""A currency that can be used for exchange."""
@@ -317,9 +373,32 @@ class PersonResolution(m.Model):
 
 	@property
 	def relative_value(self):
-		symbol = '' if self.credited else '-'
-		return "%s%s" % (symbol, self.resolution.value_repr)
+		value = self.resolution.value
+		return self.resolution.currency.value_of(value if self.credited else -value)
+
+	@property
+	def relative_value_repr(self):
+		value = self.resolution.value
+		value = value if self.credited else -value
+		return self.resolution.currency.value_repr(value)
 
 	@property
 	def transaction_time(self):
 		return self.resolution.time_confirmed
+
+	@property
+	def transaction_type(self):
+		"""The type of transaction relative to this person."""
+		return 'charge' if self.credited else 'payment'
+
+	def export_data(self):
+		return {
+			'person': '%s' % self.other_person,
+			'transfer_type': 'Resolution',
+			'transaction_type': self.transaction_type,
+			'amount': {
+				'value': '%s' % self.resolution.value_str,
+				'currency': '%s' % self.resolution.currency
+			},
+			'time': self.transaction_time.strftime(DATE_FMT),
+		}

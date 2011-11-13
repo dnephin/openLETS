@@ -15,6 +15,7 @@
         <li><a href="#newtransaction">New Transaction</a></li>
         <li><a href="#recenttransactions">Recent Transactions</a></li>
         <li><a href="#balances">Balances</a></li>
+        <li><a href="#export">Export</a></li>
       </ul>
 	</div>
   </div>
@@ -135,7 +136,7 @@
 	  	{% for balance in balances %}
 		<tr>
 		  <td>{{ balance.other_person }}</td>
-		  <td>{{ balance.relative_value }}</td>
+		  <td>{{ balance.relative_value_repr }}</td>
 		  <td>{{ balance.balance.time_updated }}</td>
 		  <td>
 		    <a href="{% url transaction_list %}?person={{ balance.other_person.id }}&currency={{ balance.balance.currency.id }}">History</a>
@@ -145,6 +146,11 @@
 	  </tbody>
 	</table>
   </div>
+
+  <a name="export"></a>
+  <div>
+    <h3>Export Data</h3>
+	<p><a href="{% url export_data %}">Export</a> all your transfers and balances for your person records.</p>
 
   {% endblock %}
   </div>
