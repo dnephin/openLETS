@@ -33,28 +33,29 @@
 
   {% block content %}
 
-  <a name="usagestats"></a>
-  <div>
-    <h3>Usage Statistics</h3>
+  <section id="usagestats">
+    <h2>Usage Statistics</h2>
+	<p>Below are some statistics about your account.</p>
 	<ul class="unstyled">
   	  <li><strong>Join on</strong> {{ user.date_joined }}</li>
 	  <li><strong>Last login</strong> {{ user.last_login }}</li>
 	</ul>
-  </div>
+  </section>
 
-  <a name="account"></a>
-  <div>
-    <h3>Account</h3>
+  <section id="account">
+    <h2>Account</h2>
+	<p>Update your account username, proper name, and email address.</p>
 
 	<form method="POST" action="{% url user_update %}">
       {% csrf_token %}
   	  {{ user_form.as_p }}
 	  <div class="input">
-	    <input type="submit" value="Save" class="btn primary"/>
+	    <input type="submit" value="Update" class="btn primary"/>
 	  </div>
 	</form>
 
 	<h4>Password</h4>
+	<p>Change your password.</p>
 	<form method="POST" action="{% url django.contrib.auth.views.password_change %}">
       {% csrf_token %}
 	  {{ password_form.as_p }}
@@ -62,11 +63,11 @@
 	    <input type="submit" value="Update password" class="btn primary"/>
 	  </div>
 	</form>
-  </div>
+  </section>
 
-  <a name="settings"></a>
-  <div>
-    <h3>Settings</h3>
+  <section id="settings">
+    <h2>Settings</h2>
+	<p>Update your default settings.</p>
 	<form method="POST" action="{% url person_update %}">
       {% csrf_token %}
 	  {{ person_form.as_p }}
@@ -74,13 +75,16 @@
 	    <input type="submit" value="Update" class="btn primary"/>
 	  </div>
 	</form>
-  </div>
+  </section>
 
-  <a name="exchangerates"></a>
-  <div>
-    <h3>Exchange Rates</h3>
+  <section id="exchangerates">
+    <h2>Exchange Rates</h2>
+	<p>Exchange rates allow you to resolve balances through trading currencies.
+	Resolutions are done automatically, so all you have to do is setup an
+	exchange rate.</p>
 
 	<h4>Create Exchange Rate</h4>
+	<p>Create a new exchange rate.</p>
 	<form method="POST" action="{% url exchange_rate_new %}">
       {% csrf_token %}
 	  {{ exchange_rate_form.as_p }}
@@ -90,6 +94,7 @@
 	</form>
 
 	<h4>Exchange Rate List</h4>
+	<p>Your current exchange rates.</p>
 	<table>
 	  <thead>
 	  <tr>
@@ -113,7 +118,7 @@
 	  {% endfor %}
 	  </tbody>
 	</table>
-  </div>
+  </section>
 
   {% endblock %}
   </div>

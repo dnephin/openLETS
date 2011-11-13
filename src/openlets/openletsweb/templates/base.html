@@ -1,75 +1,78 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>{% block title %} openLETS {% endblock %}</title>
-    <meta name="description" content="">
-    <meta name="author" content="">
+	<head>
+		<meta charset="utf-8">
+		<title>{% block title %} openLETS {% endblock %}</title>
+		<meta name="description" content="">
+		<meta name="author" content="">
 
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+		<!--[if lt IE 9]>
+			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
 	<link rel="stylesheet/less" type="text/css" href="/m/less/bootstrap.less">
 	<link rel="stylesheet/less" type="text/css" href="/m/less/openlets.less">
 	<script src="/m/js/less-1.1.3.min.js" type="text/javascript"></script>
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
-<!--    <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script> -->
+	<link rel="stylesheet" href="/m/css/jquery-ui/jquery-ui-1.8.16.custom.css"></style>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<!--	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script> -->
+<!--		<script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script> -->
 	<script src="/m/js/bootstrap-alerts.js" type="text/javascript"></script>
+	<script src="/m/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript"></script>
 	<script src="/m/js/openletsweb.js" type="text/javascript"></script> 
 
 <!--
-    <link rel="shortcut icon" href="/m/img/favicon.ico">
-    <link rel="apple-touch-icon" href="/m/img/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/m/img/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/m/img/apple-touch-icon-114x114.png">
+		<link rel="shortcut icon" href="/m/img/favicon.ico">
+		<link rel="apple-touch-icon" href="/m/img/apple-touch-icon.png">
+		<link rel="apple-touch-icon" sizes="72x72" href="/m/img/apple-touch-icon-72x72.png">
+		<link rel="apple-touch-icon" sizes="114x114" href="/m/img/apple-touch-icon-114x114.png">
 -->
-  </head>
+	</head>
 
-  <body>
+	<body>
 
 	{% block topbar %}
-     <div class="topbar">
-      <div class="fill">
-        <div class="container">
-          <a class="brand" href="{% url index %}">openLETS</a>
-          <ul class="nav">
-		  	{% block nav %}
-		      {% if user.is_authenticated %}
+		 <div class="topbar">
+			<div class="fill">
+				<div class="container">
+					<a class="brand" href="{% url index %}">openLETS</a>
+					<ul class="nav">
+				{% block nav %}
+					{% if user.is_authenticated %}
 			
-  		      {% comment %} TODO: active class on active page {% endcomment %}
-              <li><a href="{% url home %}">Home</a></li>
-              <li><a href="{% url transaction_list %}">Transactions</a></li>
-              <li><a href="{% url settings %}">Settings</a></li>
-			  {% endif %}
-              <li><a href="{% url about %}">About</a></li>
-              <li><a href="#">News</a></li>
-              <li><a href="{% url contact %}">Contact</a></li>
+						{% comment %} TODO: active class on active page {% endcomment %}
+							<li><a href="{% url home %}">Home</a></li>
+							<li><a href="{% url transaction_list %}">Transactions</a></li>
+							<li><a href="{% url settings %}">Settings</a></li>
+				{% endif %}
+							<li><a href="{% url about %}">About</a></li>
+							<li><a href="#">News</a></li>
+							<li><a href="{% url contact %}">Contact</a></li>
 			{% endblock %}
-          </ul>
-		  {% if user.is_authenticated %}
-		  	<p class="pull-right">
-		      <a href="{% url django.contrib.auth.views.logout %}">{{ user.username }}</a>
+					</ul>
+			{% if user.is_authenticated %}
+				<p class="pull-right">
+					<a href="{% url django.contrib.auth.views.logout %}">{{ user.username }}</a>
 			</p>
-		  {% else %}
-          <form method="post" action="{% url django.contrib.auth.views.login %}"
-		  		class="pull-right">
+			{% else %}
+					<form method="post" action="{% url django.contrib.auth.views.login %}"
+					class="pull-right">
 			{% csrf_token %}
-            <input class="input-small" type="text" placeholder="Username" name="username">
-            <input class="input-small" type="password" placeholder="Password" name="password">
-            <button class="btn" type="submit">Sign in</button>
-          </form>
-		  {% endif %}
-        </div>
-      </div>
-    </div>
+						<input class="input-small" type="text" placeholder="Username" name="username">
+						<input class="input-small" type="password" placeholder="Password" name="password">
+						<button class="btn" type="submit">Sign in</button>
+					</form>
+			{% endif %}
+				</div>
+			</div>
+		</div>
 	{% endblock %}
 
-    <div class="container">
+		<div class="container">
 	{% block container %}
 	{% endblock %}
-    </div> <!-- /container -->
+		</div> <!-- /container -->
 
-  </body>
+	</body>
 </html>

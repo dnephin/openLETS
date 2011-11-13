@@ -1,161 +1,174 @@
 {% extends 'base.html' %}
 
 {% block container %}
-  <div class="content">
+	<div class="content">
 
-    <div class="row">
-  {% block sidebar %}
-  <div class="span3 fixed">
-    <div class="well">
-      <h5>Menu</h5>
-      <ul class="unstyled">
-        {% if notifications %}
-        <li><a href="#notifications">Notifications</a></li>
-	    {% endif %}
-        <li><a href="#newtransaction">New Transaction</a></li>
-        <li><a href="#recenttransactions">Recent Transactions</a></li>
-        <li><a href="#balances">Balances</a></li>
-        <li><a href="#export">Export</a></li>
-      </ul>
+		<div class="row">
+	{% block sidebar %}
+	<div class="span3 fixed">
+		<div class="well">
+			<h5>Menu</h5>
+			<ul class="unstyled">
+				{% if notifications %}
+				<li><a href="#notifications">Notifications</a></li>
+			{% endif %}
+				<li><a href="#newtransaction">New Transaction</a></li>
+				<li><a href="#recenttransactions">Recent Transactions</a></li>
+				<li><a href="#balances">Balances</a></li>
+				<li><a href="#export">Export</a></li>
+			</ul>
 	</div>
-  </div>
-  {% endblock %}
+	</div>
+	{% endblock %}
 
-  <div class="span13 offset3">
+	<div class="span13 offset3">
 
-  {% block messages %}
+	{% block messages %}
 	{% if messages %}
-	  {% for message in messages %}
-	    <div class="alert-message {{ message.tags}}" data-alert="alert">
+		{% for message in messages %}
+			<div class="alert-message {{ message.tags}}" data-alert="alert">
 			<a class="close" href="#">×</a>
 			<p>{{ message }}</p>
 		</div>
-	  {% endfor %}
+		{% endfor %}
 	{% endif %}
-  {% endblock %}
+	{% endblock %}
 
-  {% block content %}
+	{% block content %}
 
-  {% if notifications %}
-  <a name="notifications"></a>
-  <div>
-    <h3>Notifications</h3>
-	  {% for notification in notifications %}
-	    <p>{{ notification }}</p>
-	  {% endfor %}
-  </div>
-  {% endif %}
+	{% if notifications %}
+	<section id="notifications">
+		<h2>Notifications</h2>
+		{% for notification in notifications %}
+			<p>{{ notification }}</p>
+		{% endfor %}
+	</section>
+	{% endif %}
 
-  <a name="newtransaction"></a>
-  <div>
-    <h3>New Transaction</h3>
+	<section id="newtransaction">
+		<h2>New Transaction</h2>
 	{% if pending_trans_records %}
 	<h4>Pending Transactions</h4>
+	<p>Confirm, modify or reject incoming pending transactions.</p>
 
-    <table class="zebra-striped">
-	  <thead>
-	    <tr>
-		  <th>Type</th>
-		  <th>Person</th>
-		  <th>Amount</th>
-		  <th>Time</th>
-		  <th>Actions</th>
+		<table class="zebra-striped">
+		<thead>
+			<tr>
+			<th>Type</th>
+			<th>Person</th>
+			<th>Amount</th>
+			<th>Time</th>
+			<th>Actions</th>
 		</tr>
-	  </thead>
-	  <tbody>
-	    {% for record in pending_trans_records %}
-	    <tr>
-		  <td>{{ record.targets_transaction_type|capfirst }}</td>
-		  <td>{{ record.creator_person }}</td>
-		  <td>{{ record.value_repr }}</td>
-		  <td>{{ record.transaction_time}}</td>
-		  <td class="link_container">
-		  	<a href="{% url transaction_confirm record.id %}">confirm</a>
+		</thead>
+		<tbody>
+			{% for record in pending_trans_records %}
+			<tr>
+			<td>{{ record.targets_transaction_type|capfirst }}</td>
+			<td>{{ record.creator_person }}</td>
+			<td>{{ record.value_repr }}</td>
+			<td>{{ record.transaction_time}}</td>
+			<td class="link_container">
+				<a href="{% url transaction_confirm record.id %}">confirm</a>
 			<a href="{% url transaction_modify record.id %}">modify</a>
-		  </td>
+			</td>
 		</tr>
 		{% endfor %}
-	  </tbody>
-    </table>
+		</tbody>
+		</table>
 	{% endif %}
 
-	<h4>Register a new transaction</h4>
-	<form method="post" action="{% url transaction_new %}">
+	<h4>Create a new transaction</h4>
+	<p>This transaction will remain in a pending 
+	state until the person on the other end of the transaction confirms the
+	transaction.</p>
+	<form method="post" action="{% url transaction_new %}" class="row">
 		{% csrf_token %}
-		{{ new_transaction_form.as_p }}
-		<div class="input">
-		  <input type="submit" class="btn primary" value="Submit">
+		{{ new_transaction_form.non_field_errors }}
+		<div class="span7">
+					{{ new_transaction_form.part_main_col }}
+		</div>
+		<div class="span5">
+			<fieldset>
+				<p>Notes</p>
+			<p>
+				{{ new_transaction_form.notes }}
+			</p>
+			<p>
+				<input type="submit" class="btn primary" value="Create">
+			</p>
+			</fieldset>
 		</div>
 	</form>
 
-  </div>
+	</section>
 
-  <a name="recenttransactions"></a>
-  <div>
-    <h3>Recent Transactions</h3>
-  
-    <table class="zebra-striped">
-	  <thead>
-	    <tr>
-		  <th>Type</th>
-		  <th>Status</th>
-		  <th>Person</th>
-		  <th>Amount</th>
-		  <th>Time</th>
-		  <th>Confirmed Time</th>
+	<section id="recenttransactions">
+		<h2>Recent Transactions</h2>
+ 	<p>Your recent transaction history. 
+	View <a href="{% url transaction_list %}">full history</a>.</p>
+		<table class="zebra-striped">
+		<thead>
+			<tr>
+			<th>Type</th>
+			<th>Status</th>
+			<th>Person</th>
+			<th>Amount</th>
+			<th>Time</th>
+			<th>Confirmed Time</th>
 		</tr>
-	  </thead>
-	  <tbody>
-	    {% for record in recent_trans_records %}
-	    <tr>
-		  <td>{{ record.transaction_type|capfirst }}</td>
-		  <td>{{ record.status|capfirst }}</td>
-		  <td>{{ record.target_person }}</td>
-		  <td>{{ record.value_repr }}</td>
-		  <td>{{ record.transaction_time}}</td>
-		  <td>{{ record.transaction.time_confirmed }}</td>
+		</thead>
+		<tbody>
+			{% for record in recent_trans_records %}
+			<tr>
+			<td>{{ record.transaction_type|capfirst }}</td>
+			<td>{{ record.status|capfirst }}</td>
+			<td>{{ record.target_person }}</td>
+			<td>{{ record.value_repr }}</td>
+			<td>{{ record.transaction_time}}</td>
+			<td>{{ record.transaction.time_confirmed }}</td>
 		</tr>
 		{% endfor %}
-	  </tbody>
-    </table>
-  </div>
+		</tbody>
+		</table>
+	</section>
 
-  <a name="balances"></a>
-  <div>
-    <h3>Balances</h3>
+	<section id="balances">
+		<h2>Balances</h2>
+	<p>Your active account balances.</p>
 	<table class="zebra-striped">
-	  <thead>
-	  	<tr>
-		  <th>Person</th>
-		  <th>Amount</th>
-		  <th>Last Change</th>
-		  <th>Actions</th>
+		<thead>
+			<tr>
+			<th>Person</th>
+			<th>Amount</th>
+			<th>Last Change</th>
+			<th>Actions</th>
 		</tr>
-	  </thead>
-	  <tbody>
-	  	{% for balance in balances %}
+		</thead>
+		<tbody>
+			{% for balance in balances %}
 		<tr>
-		  <td>{{ balance.other_person }}</td>
-		  <td>{{ balance.relative_value_repr }}</td>
-		  <td>{{ balance.balance.time_updated }}</td>
-		  <td>
-		    <a href="{% url transaction_list %}?person={{ balance.other_person.id }}&currency={{ balance.balance.currency.id }}">History</a>
-		  </td>
+			<td>{{ balance.other_person }}</td>
+			<td>{{ balance.relative_value_repr }}</td>
+			<td>{{ balance.balance.time_updated }}</td>
+			<td>
+				<a href="{% url transaction_list %}?person={{ balance.other_person.id }}&currency={{ balance.balance.currency.id }}">History</a>
+			</td>
 		</tr>
 		{% endfor %}
-	  </tbody>
+		</tbody>
 	</table>
-  </div>
+	</section>
 
-  <a name="export"></a>
-  <div>
-    <h3>Export Data</h3>
+	<section id="export">
+		<h2>Export Data</h2>
 	<p><a href="{% url export_data %}">Export</a> all your transfers and balances for your person records.</p>
+	</section>
 
-  {% endblock %}
-  </div>
+	{% endblock %}
+	</div>
 
-    </div>
-  </div>
+		</div>
+	</div>
 {% endblock %}
 

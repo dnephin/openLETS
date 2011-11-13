@@ -1,54 +1,25 @@
+"""
+ Forms for openletsweb.
+"""
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import forms as auth_forms
 from django import forms
+
 from openlets.core import models
-from openlets.openletsweb import widgets
+from openlets.openletsweb.forms.base import *
 
+__all__ = [
+	'TransactionRecordForm',
+	'TransferListForm',
+	'PersonForm',
+	'ExchangeRateForm',
+	'UserCreateForm',
+	'UserEditForm',
+	'LoginForm',
+	'PasswordChangeForm',
+]
 
-class BaseForm(object):
-	"""Mixin for adding an as_plain render method and an as_p
-	render that works with bootstrap default styles.
-	"""
-
-	def as_plain(self):
-		"""Render the form without labels and help text."""
-		return self._html_output(
-			normal_row = u'<p%(html_class_attr)s>%(field)s</p>',
-			error_row = u'%s',
-			row_ender = '</p>',
-			help_text_html = u'%s',
-			errors_on_separate_row = True)
-
-	def as_p(self):
-		"""Changes the default as_p rendering by adding a div around 
-		the field.
-		"""
-		return self._html_output(
-			normal_row=u'<p%(html_class_attr)s>'
-				'%(label)s <div class="input">%(field)s</div>'
-				'%(help_text)s</p>',
-			error_row=u'%s',
-			row_ender='</p>',
-			help_text_html=u' <span class="helptext">%s</span>',
-			errors_on_separate_row=True)
-
-
-class PlaceholderField(object):
-	"""A mixin for fields that uses placeholder for label."""
-
-	def widget_attrs(self, widget):
-		attrs = super(PlaceholderField, self).widget_attrs(widget) or {}
-		attrs['placeholder'] = self.label
-		return attrs
-
-class PlaceholderChar(PlaceholderField, forms.CharField):
-	widget = widgets.PlaceholderTextInput
-
-class PlaceholderEmail(PlaceholderField, forms.EmailField):
-	widget = widgets.PlaceholderTextInput
-
-
-class TransactionRecordForm(BaseForm, forms.ModelForm):
+class TransactionRecordForm(BaseFormMixin, forms.ModelForm):
 	"""A Form for creating new TransactionRecord objects."""
 
 	class Meta:
@@ -62,10 +33,16 @@ class TransactionRecordForm(BaseForm, forms.ModelForm):
 			'notes',
 		)
 		widgets = {
-			'transaction_time': forms.TextInput(
-				attrs={'class': 'medium'}
-			),
+			'transaction_time': forms.TextInput(attrs={'class': 'medium'}),
+			'notes': forms.Textarea(attrs={'rows': 7, 'class': 'span4'}),
 		}
+
+	_parts = {
+		'main_col': [
+			'transaction_time', 'from_receiver', 'target_person', 'currency', 'value'
+		],
+		'notes_col': ['notes']
+	}
 
 	from_receiver =  forms.TypedChoiceField(
 		label="Type",
@@ -132,10 +109,15 @@ class TransactionRecordForm(BaseForm, forms.ModelForm):
 		return trans_rec
 
 
-class TransferListForm(BaseForm, forms.Form):
+class TransferListForm(BaseFormMixin, forms.Form):
 	"""A form for validating filters for viewing lists of transactions
 	and resolutions.
 	"""
+
+	_parts = {
+		'radios': ['transfer_type', 'transaction_type', 'status'],
+		'left_col': ['person', 'currency', 'transaction_time', 'confirmed_time']
+	}
 
 	person = forms.ModelChoiceField(models.Person.objects.all(), required=False)
 	transfer_type = forms.ChoiceField(
@@ -170,18 +152,20 @@ class TransferListForm(BaseForm, forms.Form):
 		min_value=1, 
 		max_value=365, 
 		required=False, 
-		initial=30
+		initial=30,
+		widget=forms.TextInput(attrs={'class': 'slider'})
 	)
 	# Confirmed Time in days
 	confirmed_time = forms.IntegerField(
 		min_value=1, 
 		max_value=365, 
 		required=False, 
+		widget=forms.TextInput(attrs={'class': 'slider'})
 	)
 	currency = forms.ModelChoiceField(models.Currency.objects.all(), required=False)
 
 
-class PersonForm(BaseForm, forms.ModelForm):
+class PersonForm(BaseFormMixin, forms.ModelForm):
 	"""A form to edit Person details."""
 
 	class Meta:
@@ -189,7 +173,7 @@ class PersonForm(BaseForm, forms.ModelForm):
 		fields = ('default_currency',)
 
 
-class ExchangeRateForm(BaseForm, forms.ModelForm):
+class ExchangeRateForm(BaseFormMixin, forms.ModelForm):
 	"""A form to create or edit Exchange Rates."""
 
 	class Meta:
@@ -213,7 +197,7 @@ class ExchangeRateForm(BaseForm, forms.ModelForm):
 		return model
 
 
-class UserCreateForm(BaseForm, forms.ModelForm):
+class UserCreateForm(BaseFormMixin, forms.ModelForm):
 	"""A form to create a new user."""
 
 	class Meta:
@@ -227,7 +211,7 @@ class UserCreateForm(BaseForm, forms.ModelForm):
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput)
 
 
-class UserEditForm(BaseForm, forms.ModelForm):
+class UserEditForm(BaseFormMixin, forms.ModelForm):
 	"""A form to edit user details."""
 
 	class Meta:
@@ -235,10 +219,10 @@ class UserEditForm(BaseForm, forms.ModelForm):
 		fields = ('username', 'first_name', 'last_name', 'email')
 
 
-class LoginForm(BaseForm, auth_forms.AuthenticationForm):
+class LoginForm(BaseFormMixin, auth_forms.AuthenticationForm):
 	
 	username = PlaceholderChar(max_length=30)
 	password = PlaceholderChar(widget=widgets.PlaceholderPasswordInput) 
 
-class PasswordChangeForm(BaseForm, auth_forms.PasswordChangeForm):
+class PasswordChangeForm(BaseFormMixin, auth_forms.PasswordChangeForm):
 	pass
