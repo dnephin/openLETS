@@ -41,7 +41,15 @@ def build_pending_trans_records(request):
 		cur_user_trans_record = None
 		if trans_record.transaction:
 			cur_user_trans_record = trans_record.other_trans_record
+
 		trans_record.modify_form = forms.TransactionRecordForm(
+			initial={
+				'transaction_time': trans_record.transaction_time,
+				'currency': trans_record.currency.id,
+				'target_person': trans_record.creator_person.id,
+				'value': trans_record.value_str,
+				'from_receiver': trans_record.targets_transaction_type,
+			},
 			instance=cur_user_trans_record
 		)
 		trans_record.approve_with_record = trans_matcher.find_similar(
@@ -64,7 +72,7 @@ def home(request):
 		}
 	)
 
-	context['pending_trans_records'] = build_pending_trans_records(request)
+	context['pending_trans_records'] = list(build_pending_trans_records(request))
 
 	# Recent transactions, that may be confirmed
 	context['recent_trans_records'] = db.get_recent_trans_for_user(request.user)
@@ -185,9 +193,16 @@ def transaction_confirm(request, trans_record_id):
 	messages.success(request, 'Transaction confirmed.')
 	return redirect('home')
 
-@require_GET
+@require_POST
 def transaction_modify(request, trans_record_id):
 	"""Modify a transaction record from another person."""
+	form = forms.TransactionRecordForm(request.POST)
+	if form.is_valid():
+		form.save(request.user)
+		messages.success(request, 'Transaction modified.')
+		return redirect('home')
+	# TODO: handle errors better, so they don't display on the create form.
+	return home(request)
 
 
 def content_view(request, name):

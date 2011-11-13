@@ -103,6 +103,8 @@ class TransactionRecordForm(BaseFormMixin, forms.ModelForm):
 
 		trans_rec.value = data['value']
 		trans_rec.creator_person = active_user.person
+		# TODO: cleaner error message
+		assert trans_rec.target_person != active_user.person
 
 		if commit:
 			return trans_rec.save()

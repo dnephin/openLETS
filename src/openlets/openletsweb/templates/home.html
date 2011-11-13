@@ -51,14 +51,15 @@
 	<h4>Pending Transactions</h4>
 	<p>Confirm, modify or reject incoming pending transactions.</p>
 
-		<table class="zebra-striped">
+		<table class="">
 		<thead>
 			<tr>
 			<th>Type</th>
 			<th>Person</th>
 			<th>Amount</th>
 			<th>Time</th>
-			<th>Actions</th>
+			<th></td>
+			<th></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -68,15 +69,53 @@
 			<td>{{ record.creator_person }}</td>
 			<td>{{ record.value_repr }}</td>
 			<td>{{ record.transaction_time}}</td>
-			<td class="link_container">
-				<a href="{% url transaction_confirm record.id %}">confirm</a>
-			<a href="{% url transaction_modify record.id %}">modify</a>
+			<td>
+				{% if record.notes %}
+					<a href="#" class="btn info small"
+						rel="popover"
+						data-placement="left"
+						data-title="Notes from person"
+						data-content="{{ record.notes }}">notes</a>
+				{% endif %}
+			</td>
+			<td class="">
+				<a href="{% url transaction_confirm record.id %}" class="btn small success">confirm</a>
+				<a data-controls-modal="trans-modify-modal-{{ record.id }}" 
+					data-keyboard="true"
+					data-backdrop="true"
+					href="#"
+					class="btn small"
+				>modify</a>
+				<a href="#" class="btn small danger">reject</a>
 			</td>
 		</tr>
 		{% endfor %}
 		</tbody>
 		</table>
+
+		{% for record in pending_trans_records %}
+			<div id="trans-modify-modal-{{ record.id }}" class="modal hide fade in">
+				<div class="modal-header">
+					<a href="#" class="close">x</a>
+					<h3>Modify Transaction</h3>
+				</div>
+
+				<form action="{% url transaction_modify record.id %}" method="POST">
+				{% csrf_token %}
+				<div class="modal-body">
+					<p>Complete the form with the transaction details to submit your
+					modified version of the transaction.</p>
+					{{ record.modify_form.as_p }}
+				</div>
+				<div class="modal-footer">
+					<input type="submit" class="btn primary" value="Modify">
+				</div>
+				</form>
+
+		  </div>
+		{% endfor %}
 	{% endif %}
+
 
 	<h4>Create a new transaction</h4>
 	<p>This transaction will remain in a pending 
@@ -106,7 +145,7 @@
 	<section id="recenttransactions">
 		<h2>Recent Transactions</h2>
  	<p>Your recent transaction history. 
-	View <a href="{% url transaction_list %}">full history</a>.</p>
+	View full <a href="{% url transaction_list %}">history</a>.</p>
 		<table class="zebra-striped">
 		<thead>
 			<tr>

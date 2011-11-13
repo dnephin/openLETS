@@ -30,6 +30,17 @@ class CurrencyMixin(m.Model):
 		return self.currency.value_of(self.value)
 
 
+class DictableModel(object):
+	"""A mixin that adds a to_dict method to a model."""
+
+	def to_dict(self):
+		"""Return a dict of field name to field serializable value."""
+		return dict(
+			(field.name, self.serializable_value(field.name))
+			for field in self._meta.fields
+		)
+
+
 class Person(m.Model):
 	"""A person. This model is the auth profile model."""
 	user = m.OneToOneField(User)
@@ -220,7 +231,7 @@ class Transaction(m.Model):
 		return self.receiver_record.creator_person
 
 
-class TransactionRecord(CurrencyMixin, m.Model):
+class TransactionRecord(DictableModel, CurrencyMixin, m.Model):
 	"""
 	A record of the transaction submitted by a user. A transaction is not
 	complete until confirmed by both parties having submitted their own
