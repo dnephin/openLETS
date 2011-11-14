@@ -35,6 +35,7 @@ web_urlpatterns = patterns('openletsweb.views',
 
 	url(r'^about$', 'content_view', {'name': 'about'}, 'about'),
 	url(r'^contact$', 'content_view', {'name': 'contact'}, 'contact'),
+	url(r'^news$', 'news', name='news'),
 )
 
 admin_urlpatterns = patterns('',

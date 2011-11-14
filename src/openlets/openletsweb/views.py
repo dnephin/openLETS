@@ -225,6 +225,18 @@ def content_view(request, name):
 		context={'content': content}
 	)
 
+def news(request):
+	"""Get latest news posts."""
+	news = models.NewsPost.objects.filter(
+		site=config.SITE_ID,
+	).order_by('-time_created')[:20]
+	content = models.Content.objects.get(name='news_header', site=config.SITE_ID)
+
+	context = {
+		'news_posts': news,
+		'header': content
+	}
+	return web.render_context(request, 'news.html', context=context)
 
 def export_data(request):
 	"""Export all data for a user."""

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load markup %}
+
+{% block container %}
+  <div class="content">
+	{{ header.body|markdown }}
+
+	<hr>
+	{% for post in news_posts %}
+	<div class="news-post">
+	  <h3>{{ post.title }}</h3>
+		<p>
+			{{ post.body }}
+		</p>
+		<p>
+		  <small>
+		    <strong>Last Updated:</strong> {{ post.time_updated }} 
+						&mdash; <strong>{{ post.author }}</strong>
+  	    </small>
+		</p>
+	</div>
+	{% endfor %}
+  </div>
+{% endblock %}
