@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.models import Site
 from django.contrib import messages
 from django.conf import settings as config
 from django.http import HttpResponse
@@ -23,7 +24,8 @@ def index(request):
 	context = {
 		'login_form': forms.LoginForm(),
 		'user_form': forms.UserCreateForm(web.form_data(request)),
-		'intro': intro 
+		'intro': intro,
+		'site': Site.objects.get(id=config.SITE_ID) 
 	}
 	return web.render_context(request, 'index.html', context=context)
 

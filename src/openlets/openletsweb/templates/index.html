@@ -12,29 +12,30 @@
           <p>
 		    <a href="https://github.com/dnephin/openLETS">openLETS</a> is an open source and freely distributed <a href="http://en.wikipedia.org/wiki/Local_exchange_trading_system">local exchange trading system</a>. Download the <a href="https://github.com/dnephin/openLETS">source</a> and start your own LETS.
 		  </p>
-          <p><a class="btn" href="https://github.com/dnephin/openLETS">Download &raquo;</a></p>
+          <p><a class="btn" href="https://github.com/dnephin/openLETS">Download</a></p>
         </div>
         <div class="span-one-third">
           <h2>Try it out</h2>
-		  <p>Register with openLETS.net to see how it works, trade goods and 
-		  exchange services with your friends and community. 
+		  <p>Register with {{ site.name }} to trade goods and 
+		  exchange services with your friends and community.
 		  </p>
 
 		  <form method="POST" action="{% url user_new %}">
    		    {% csrf_token %}
 		    {{ user_form.as_plain }}
-            <p><input type="submit" class="btn" value="Register &raquo;"></p>
+            <p><input type="submit" class="btn" value="Register"></p>
 		  </form>
        </div>
         <div class="span-one-third">
           <h2>Login</h2>
-		  <p>Already using openlets?</p>
+		  <p>Already using {{ site.name }}? You must login.</p>
 
 		  <form method="POST" action="{% url django.contrib.auth.views.login %}">
 		    {% csrf_token %}
 		    {{ login_form.as_plain }}
-            <p><input type="submit" class="btn" value="Login &raquo;"></p>
+            <p><input type="submit" class="btn" value="Login"></p>
 		  </form>
+		<p>Forget your <a href="{% url password_reset %}">password</a>?</p>
 
         </div>
       </div>
