@@ -129,7 +129,8 @@ def get_transfer_history(user, filters):
 	# Merge results
 	return sorted(
 		itertools.chain.from_iterable(query_sets), 
-		key=operator.attrgetter('transaction_time')
+		key=operator.attrgetter('transaction_time'),
+		reverse=True
 	)
 
 
