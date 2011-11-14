@@ -29,6 +29,7 @@ web_urlpatterns = patterns('openletsweb.views',
     url(r'^settings/user/new$', 'user_new', name='user_new'),
     url(r'^settings/person/update$', 'person_update', name='person_update'),
     url(r'^exchange_rate/new$', 'exchange_rate_new', name='exchange_rate_new'),
+    url(r'^exchange_rate/delete/(\d+)$', 'exchange_rate_delete', name='exchange_rate_delete'),
 
     url(r'^export_data$', 'export_data', name='export_data'),
 

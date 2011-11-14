@@ -9,9 +9,11 @@ from openlets.openletsweb.forms import widgets
 
 __all__ = [
 	'BaseFormMixin',
+	'CurrencyValueField',
 	'PlaceholderField',
 	'PlaceholderChar',
 	'PlaceholderEmail',
+	'currency_clean_helper',
 	'widgets',
 ]
 
@@ -54,7 +56,7 @@ class BaseFormMixin(object):
 			field = self[field_name]
 			html.append(mark_safe(
 				"%s<p>%s</p><div class='input'>%s</div>" % (
-					field.errors, field.label_tag(), unicode(field)
+					u'\n'.join(field.errors), field.label_tag(), unicode(field)
 				)
 			))
 		return html
@@ -99,3 +101,41 @@ class PlaceholderEmail(PlaceholderField, forms.EmailField):
 	widget = widgets.PlaceholderTextInput
 
 
+class CurrencyValueField(forms.CharField):
+	"""A field for currency values."""
+
+	def clean(self, value):
+		"""Clean a value. Ensure that the value is numeric."""
+		value = super(CurrencyValueField, self).clean(value)
+		value_parts = value.split('.')
+		if len(value_parts) > 2:
+			raise forms.ValidationError("Unknown number %s" % (value))
+		for part in value_parts:
+			if not part.isdigit():
+				raise forms.ValidationError("Unknown number %s" % (value))
+		return tuple(int(p) for p in value_parts)
+
+	def widget_attrs(self, widget):
+		attrs = super(CurrencyValueField, self).widget_attrs(widget) or {}
+		attrs['class'] = 'mini'
+		return attrs
+
+
+def currency_clean_helper(currency, value):
+	"""Used to validate that a currency value works for a 
+	give currency.  Should be called from a forms clean() method.
+
+	Returns (value, errors)
+	"""
+	whole = value[0]
+	frac = str(value[1]) if len(value) == 2 else None
+	if frac and len(frac) > currency.decimal_places:
+		return None, "Too many decimal places (%s) for currency %s" % (
+				len(frac), currency)
+
+	if not frac:
+		frac = '0' * currency.decimal_places
+	elif len(frac) < currency.decimal_places:
+		frac += '0' * (currency.decimal_places - len(frac))
+
+	return int(str(whole) + frac), None

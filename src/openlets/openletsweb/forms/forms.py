@@ -54,44 +54,20 @@ class TransactionRecordForm(BaseFormMixin, forms.ModelForm):
 		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),
 		initial='payment'
 	)
-	value = forms.CharField(max_length=200, 
-		widget=forms.TextInput(attrs={'class': 'mini'})
-	)
-
-	def clean_value(self):
-		"""Clean a value. Ensure that the value is numeric."""
-		value = self.cleaned_data['value']
-		value_parts = value.split('.')
-		if len(value_parts) > 2:
-			raise forms.ValidationError("Unknown number %s" % (value))
-		for part in value_parts:
-			if not part.isdigit():
-				raise forms.ValidationError("Unknown number %s" % (value))
-		return tuple(int(p) for p in value_parts)
+	value = CurrencyValueField()
 
 	def clean(self):
 		"""Clean the form. Ensure value makes sense for the currency."""
 		cleaned_data = self.cleaned_data
 		if self._errors:
 			return cleaned_data
-		currency = cleaned_data['currency']
-		value = cleaned_data['value']
 
-		whole = value[0]
-		frac = str(value[1]) if len(value) == 2 else None
-		if frac and len(frac) > currency.decimal_places:
-			self._errors['value'] = [
-				"Too many decimal places (%s) for currency %s" % (
-					len(frac), currency)
-			]
+		value, error = currency_clean_helper(
+			cleaned_data['currency'], cleaned_data['value'])
+		if error:
+			self._errors.setdefault('value', []).append(error)
 			return cleaned_data
-
-		if not frac:
-			frac = '0' * currency.decimal_places
-		elif len(frac) < currency.decimal_places:
-			frac += '0' * (currency.decimal_places - len(frac))
-
-		cleaned_data['value'] = int(str(whole) + frac)
+		cleaned_data['value'] = value
 		return cleaned_data
 
 	def save(self, active_user, commit=True):
@@ -101,7 +77,6 @@ class TransactionRecordForm(BaseFormMixin, forms.ModelForm):
 		trans_rec = super(TransactionRecordForm, self).save(commit=False)
 		data = self.cleaned_data
 
-		trans_rec.value = data['value']
 		trans_rec.creator_person = active_user.person
 		# TODO: cleaner error message
 		assert trans_rec.target_person != active_user.person
@@ -188,13 +163,41 @@ class ExchangeRateForm(BaseFormMixin, forms.ModelForm):
 			'source_currency', 'source_rate',
 			'dest_currency', 'dest_rate'
 		)
-		widgets = dict.fromkeys(
-			('source_rate', 'dest_rate'), 
-			forms.TextInput(attrs={'class': 'mini'})
-		)
-		# TODO: currency value mixin for rates (so decimals can be used)
-		# TODO: handle duplicate exchange rates (see model unique constraint)
 
+	source_rate = CurrencyValueField()
+	dest_rate = CurrencyValueField()
+
+	def clean(self):
+		"""Clean the form. Ensure value makes sense for the currency."""
+		cleaned_data = self.cleaned_data
+		if self._errors:
+			return cleaned_data
+
+		if cleaned_data['source_currency'] == cleaned_data['dest_currency']:
+			self._errors['source_currency'] = [
+				"Source and destination currency must be different."
+			]
+
+		source_value, source_error = currency_clean_helper(
+			cleaned_data['source_currency'], 
+			cleaned_data['source_rate']
+		)
+		dest_value, dest_error = currency_clean_helper(
+			cleaned_data['dest_currency'], 
+			cleaned_data['dest_rate']
+		)
+		if source_error:
+			self._errors.setdefault('source_rate', []).append(source_error)
+		if dest_error:
+			self._errors.setdefault('dest_rate', []).append(dest_error)
+		if self.errors:
+			return cleaned_data
+	
+		cleaned_data['source_rate'] = source_value
+		cleaned_data['dest_rate'] = dest_value
+		return cleaned_data
+
+	# TODO: handle duplicate exchange rates (see model unique constraint)
 	def save(self, active_user, commit=True):
 		model = super(ExchangeRateForm, self).save(commit=False)
 		model.person = active_user.person

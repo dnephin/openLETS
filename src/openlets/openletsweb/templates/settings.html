@@ -46,7 +46,7 @@
     <h2>Account</h2>
 	<p>Update your account username, proper name, and email address.</p>
 
-	<form method="POST" action="{% url user_update %}">
+	<form method="POST" action="{% url user_update %}#account">
       {% csrf_token %}
   	  {{ user_form.as_p }}
 	  <div class="input">
@@ -56,7 +56,7 @@
 
 	<h4>Password</h4>
 	<p>Change your password.</p>
-	<form method="POST" action="{% url django.contrib.auth.views.password_change %}">
+	<form method="POST" action="{% url django.contrib.auth.views.password_change %}#account">
       {% csrf_token %}
 	  {{ password_form.as_p }}
 	  <div class="input">
@@ -68,7 +68,7 @@
   <section id="settings">
     <h2>Settings</h2>
 	<p>Update your default settings.</p>
-	<form method="POST" action="{% url person_update %}">
+	<form method="POST" action="{% url person_update %}#settings">
       {% csrf_token %}
 	  {{ person_form.as_p }}
 	  <div class="input">
@@ -85,7 +85,7 @@
 
 	<h4>Create Exchange Rate</h4>
 	<p>Create a new exchange rate.</p>
-	<form method="POST" action="{% url exchange_rate_new %}">
+	<form method="POST" action="{% url exchange_rate_new %}#exchangerates">
       {% csrf_token %}
 	  {{ exchange_rate_form.as_p }}
 	  <div class="input">
@@ -112,7 +112,7 @@
 		  <td>{{ exchange.time_created }}</td>
 		  <td>
 		    <a href="#" class="btn small">Modify</a>
-			<a href="#"class="btn small danger">Remove</a>
+			<a href="{% url exchange_rate_delete exchange.id %}" class="btn small danger">Remove</a>
 		  </td>
 		</tr>
 	  {% endfor %}

@@ -124,6 +124,16 @@ def exchange_rate_new(request):
 	return settings(request)
 
 @login_required
+@require_GET
+def exchange_rate_delete(request, rate_id):
+	exchange_rate = db.models.ExchangeRate.objects.get(
+		id=rate_id, person=request.user.person
+	)
+	exchange_rate.delete()
+	messages.success(request, 'Exchange rate removed.')
+	return redirect('settings')
+
+@login_required
 @require_POST
 def person_update(request):
 	"""Update person details."""
