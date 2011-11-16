@@ -217,6 +217,12 @@ def transaction_modify(request, trans_record_id):
 	# TODO: handle errors better, so they don't display on the create form.
 	return home(request)
 
+@require_GET
+def transaction_reject(request, trans_record_id):
+	"""Reject a transaction from another user."""
+	db.reject_trans_record(trans_record_id, request.user)
+	messages.success(request, 'Transaction rejected.')
+	return redirect('home')
 
 def content_view(request, name):
 	"""Get a piece of content by name."""

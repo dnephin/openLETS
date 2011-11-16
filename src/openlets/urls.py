@@ -24,6 +24,7 @@ web_urlpatterns = patterns('openletsweb.views',
 	url(r'^transaction/list$', 'transaction_list', name='transaction_list'),
 	url(r'^transaction/confirm/(\d+)$', 'transaction_confirm', name='transaction_confirm'),
 	url(r'^transaction/modify/(\d+)$', 'transaction_modify', name='transaction_modify'),
+	url(r'^transaction/reject/(\d+)$', 'transaction_reject', name='transaction_reject'),
 
 	url(r'^settings/user/update$', 'user_update', name='user_update'),
 	url(r'^settings/user/new$', 'user_new', name='user_new'),

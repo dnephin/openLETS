@@ -42,7 +42,8 @@ def get_pending_trans_for_user(user):
 	"""
 	return models.TransactionRecord.objects.filter(
 		target_person=user.person,
-		transaction__isnull=True
+		transaction__isnull=True,
+		rejected=False
 	)
 
 def get_recent_trans_for_user(user, days=10, limit=15, pending_only=False):
@@ -52,7 +53,8 @@ def get_recent_trans_for_user(user, days=10, limit=15, pending_only=False):
 	earliest_day = datetime.date.today() - datetime.timedelta(days)
 	q = models.TransactionRecord.objects.filter(
 		creator_person=user.person,
-		time_created__gte=earliest_day
+		time_created__gte=earliest_day,
+		rejected=False
 	)
 
 	if pending_only:
@@ -116,6 +118,7 @@ def get_transfer_history(user, filters):
 	if not transfer_type or transfer_type == 'transaction':
 		query_sets.append(models.TransactionRecord.objects.filter(
 			creator_person=user.person,
+			rejected=False,
 			**dict(trans_query)
 		))
 
@@ -138,8 +141,17 @@ def get_trans_record_for_user(trans_record_id, user):
 	"""Get a transaction record for a user."""
 	return models.TransactionRecord.objects.get(
 		id=trans_record_id,
-		target_person=user.person
+		target_person=user.person,
+		rejected=False
 	)
+
+@transaction.commit_on_success
+def reject_trans_record(trans_record_id, user):
+	"""Reject a transaction record where the user is the target."""
+	trans_record = get_trans_record_for_user(trans_record_id, user)
+	trans_record.rejected = True
+	trans_record.save()
+
 
 @transaction.commit_on_success
 def confirm_trans_record(trans_record):

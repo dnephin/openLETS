@@ -7,7 +7,7 @@ ENVIRONMENT = os.environ.get('OPENLETS_ENV', 'dev')
 if ENVIRONMENT == 'dev':
 	from .dev import *
 elif ENVIRONMENT == 'stage':
-	from.stage import *
+	from .stage import *
 elif ENVIRONMENT == 'prod':
 	from .prod import *
 else:

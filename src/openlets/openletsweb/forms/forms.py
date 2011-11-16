@@ -34,7 +34,7 @@ class TransactionRecordForm(BaseFormMixin, forms.ModelForm):
 		)
 		widgets = {
 			'transaction_time': forms.TextInput(attrs={'class': 'medium'}),
-			'notes': forms.Textarea(attrs={'rows': 7, 'class': 'span4'}),
+			'notes': forms.Textarea(attrs={'rows': 7, 'class': 'xlarge'}),
 		}
 
 	_parts = {

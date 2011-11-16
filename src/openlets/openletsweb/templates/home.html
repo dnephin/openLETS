@@ -86,7 +86,7 @@
 					href="#"
 					class="btn small"
 				>modify</a>
-				<a href="#" class="btn small danger">reject</a>
+				<a href="{% url transaction_reject record.id %}" class="btn small danger">reject</a>
 			</td>
 		</tr>
 		{% endfor %}

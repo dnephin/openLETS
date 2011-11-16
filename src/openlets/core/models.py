@@ -252,6 +252,7 @@ class TransactionRecord(DictableModel, CurrencyMixin, m.Model):
 		related_name='transaction_records_target',
 	)
 	from_receiver = m.BooleanField()
+	rejected = m.BooleanField(default=False)
 	transaction_time = m.DateTimeField()
 	time_created = m.DateTimeField(auto_now_add=True)
 	notes = m.TextField(null=True, blank=True)
