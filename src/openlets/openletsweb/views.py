@@ -1,5 +1,8 @@
 import datetime
+import itertools
 import json
+from operator import itemgetter
+
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib import auth
@@ -59,6 +62,55 @@ def build_pending_trans_records(request):
 		)
 		yield trans_record
 
+def get_notification_list(user):
+	"""Get recent transactions, resolutions and news posts, build human friendly
+	messages for each, and sort them by created time.
+	"""
+	now = datetime.datetime.now()
+	days = 3 
+
+	transactions = db.get_transaction_notifications(user, days)
+	resolutions = db.get_recent_resolutions(user, days)
+	news_posts = models.NewsPost.objects.filter(
+		time_created__gte=now - datetime.timedelta(days),
+		site=config.SITE_ID
+	)
+
+	def build_transaction_message(trans):
+		if trans.status == 'pending':
+			action = 'created a'
+		elif trans.status == 'rejected':
+			action = 'rejected your'
+		else:
+			action = 'confirmed your'
+		return "%s %s transaction for a %s of %s." % (
+			trans.creator_person,
+			action,
+			trans.targets_transaction_type,
+			trans.value_repr
+		), trans.time_created
+
+	def build_resolution_message(res):
+		return "Your balance with %s was resolved for %s." % (
+			res.other_person, res.relative_value_repr
+		), res.resolution.time_confirmed
+
+	def build_news_post_message(post):
+		return "%s posted '%s'." % (
+			post.author, post.title
+		), post.time_created
+
+	return [i[0] for i in sorted(
+		itertools.chain(
+			(build_transaction_message(t) for t in transactions),
+			(build_resolution_message(r) for r in resolutions),
+			(build_news_post_message(n) for n in news_posts)
+		),
+		key=itemgetter(1),
+		reverse=True
+	)]
+
+
 @login_required
 def home(request):
 	"""Setup homepage context."""
@@ -82,16 +134,18 @@ def home(request):
 	# Currency balances
 	context['balances'] = db.get_balances(request.user)
 
-	# TODO: notifications for recent news, transactions, balances
-	context['notifications'] = None
+	# Notifications for recent news, transactions, balances
+	context['notifications'] = get_notification_list(request.user)
 
 	return web.render_context(request, 'home.html', context=context)
 
 @login_required
 def settings(request):
 	"""Build context for settings page."""
-	context = {}
-	# TODO:usage statistics
+	context = {
+		'num_transactions': db.get_transaction_count(request.user),
+		'num_balances': db.get_balances(request.user).count(),
+	}
 
 	# User account form
 	context['user_form'] = forms.UserEditForm(

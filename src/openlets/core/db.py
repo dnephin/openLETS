@@ -26,15 +26,14 @@ def get_balance(persona, personb, currency):
 		).balance
 	)
 
-def get_balances(user):
+def get_balances(user, include_balanced=False):
 	"""Get the list of balances for a user. Filter out any where the value is
 	back to 0.
 	"""
-	return models.PersonBalance.objects.filter(
-		person=user.person,
-	).exclude(
-		balance__value=0
-	)
+	q = models.PersonBalance.objects.filter(person=user.person)
+	if not include_balanced:
+		q.exclude(balance__value=0)
+	return q
 
 def get_pending_trans_for_user(user):
 	"""Get pending transactions for a user which were
@@ -53,8 +52,7 @@ def get_recent_trans_for_user(user, days=10, limit=15, pending_only=False):
 	earliest_day = datetime.date.today() - datetime.timedelta(days)
 	q = models.TransactionRecord.objects.filter(
 		creator_person=user.person,
-		time_created__gte=earliest_day,
-		rejected=False
+		time_created__gte=earliest_day
 	)
 
 	if pending_only:
@@ -96,11 +94,14 @@ def get_transfer_history(user, filters):
 	conv('transaction_type', 'from_receiver', 'credited', lambda x: x == 'charge')
 	conv('currency', 'currency', 'resolution__currency')
 
-	conv('status',
-		'transaction__time_confirmed__isnull',
-		'resolution__time_confirmed__isnull',
-		lambda x: x == 'pending'
-	)
+	if filters.get('status') == 'rejected':
+		conv('status', 'rejected', None, lambda x: True)
+	else:
+		conv('status',
+			'transaction__time_confirmed__isnull',
+			'resolution__time_confirmed__isnull',
+			lambda x: x == 'pending'
+		)
 
 	conv('transaction_time', 
 		'transaction_time__gt', 
@@ -118,7 +119,6 @@ def get_transfer_history(user, filters):
 	if not transfer_type or transfer_type == 'transaction':
 		query_sets.append(models.TransactionRecord.objects.filter(
 			creator_person=user.person,
-			rejected=False,
 			**dict(trans_query)
 		))
 
@@ -229,4 +229,28 @@ def new_balance(currency_type, provider, receiver):
 	personbalanceb.save()
 	balance.save()
 	return balance
-	
+
+
+def get_transaction_count(user):
+	"""Get a count of transaction records by this user."""
+	return models.TransactionRecord.objects.filter(
+		creator_person=user.person
+	).count()
+
+
+def get_transaction_notifications(user, days=2):
+	"""Get recent transaction actions targetted at the user."""
+	now = datetime.datetime.now()
+	return models.TransactionRecord.objects.filter(
+		target_person=user.person,
+		time_created__gte=now - datetime.timedelta(days=days)
+	)
+
+
+def get_recent_resolutions(user, days=2):
+	"""Get recent resolutions involsing the user."""
+	now = datetime.datetime.now()
+	return models.PersonResolution.objects.filter(
+		person=user.person,
+		resolution__time_confirmed__gte=now - datetime.timedelta(days=days)
+	)

@@ -39,9 +39,24 @@
 	{% if notifications %}
 	<section id="notifications">
 		<h2>Notifications</h2>
+		<p>Notifications for recent events.</p>
+		{% if notifications|length > 5 %}
+		  <a href="#" 
+		  	data-target="#notification-list" 
+			data-toggle-text="Hide"
+			data-add-class="full-view"
+			data-remove-class="reduced-view"
+			class="show-hide-toggle">Show more</a>
+		{% endif %}
+
+		<div id="notification-list" class="reduced-view">
+		<ul>
 		{% for notification in notifications %}
-			<p>{{ notification }}</p>
+			<li>{{ notification }}</li>
 		{% endfor %}
+		</ul>
+		</div>
+
 	</section>
 	{% endif %}
 
@@ -145,7 +160,7 @@
 	<section id="recenttransactions">
 		<h2>Recent Transactions</h2>
  	<p>Your recent transaction history. 
-	View full <a href="{% url transaction_list %}">history</a>.</p>
+	View full <a href="{% url transaction_list %}" class="strong">history</a>.</p>
 		<table class="zebra-striped">
 		<thead>
 			<tr>
@@ -201,7 +216,8 @@
 
 	<section id="export">
 		<h2>Export Data</h2>
-	<p><a href="{% url export_data %}">Export</a> all your transfers and balances for your person records.</p>
+	<p><a href="{% url export_data %}" class="strong">Export</a> all your 
+	transfers and balances for your person records.</p>
 	</section>
 
 	{% endblock %}

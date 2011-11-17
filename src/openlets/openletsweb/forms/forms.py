@@ -120,7 +120,8 @@ class TransferListForm(BaseFormMixin, forms.Form):
 		choices=[
 			('', 'All'),
 			('pending', 'Pending'),
-			('confirmed', 'Confirmed')
+			('confirmed', 'Confirmed'),
+			('rejected', 'Rejected')
 		],
 		required=False,
 		widget=forms.RadioSelect(renderer=widgets.UnstyledRadioRenderer),

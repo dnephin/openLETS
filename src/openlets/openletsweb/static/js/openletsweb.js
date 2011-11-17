@@ -28,8 +28,34 @@ setup_sliders = function() {
 	})
 }
 
+/*
+ * Setup click events for toggles.
+ */
+setup_toggles = function() {
+	$('.show-hide-toggle').each(function(i, ele) {
+		var ele = $(ele);
+		var target = $(ele.attr('data-target'));
+		ele.click(function(event) {
+			event.preventDefault();
+			// toggle text
+			old_text = ele.html();
+			ele.html(ele.attr('data-toggle-text'));
+			ele.attr('data-toggle-text', old_text);
+
+			// toggle css
+			remove_class = ele.attr('data-remove-class');
+			add_class = ele.attr('data-add-class');
+			target.removeClass(remove_class);
+			target.addClass(add_class);
+			ele.attr('data-remove-class', add_class);
+			ele.attr('data-add-class', remove_class);
+		})
+	})
+}
+
 $(document).ready(function () {
 	set_active_tab();
 	$('[rel="popover"]').popover();
 	setup_sliders();
+	setup_toggles();
 })

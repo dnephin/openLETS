@@ -277,6 +277,8 @@ class TransactionRecord(DictableModel, CurrencyMixin, m.Model):
 
 	@property
 	def status(self):
+		if self.rejected:
+			return 'rejected'
 		trans = self.transaction
 		return 'confirmed' if trans and trans.time_confirmed else 'pending'
 

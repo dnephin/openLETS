@@ -36,10 +36,12 @@
   <section id="usagestats">
     <h2>Usage Statistics</h2>
 	<p>Below are some statistics about your account.</p>
-	<ul class="unstyled">
-  	  <li><strong>Joined on</strong> {{ user.date_joined }}</li>
-	  <li><strong>Last login</strong> {{ user.last_login }}</li>
-	</ul>
+	<table>
+  	  <tr><td><strong>Joined on</strong></td><td> {{ user.date_joined }}</td></tr>
+	  <tr><td><strong>Last login</strong></td><td> {{ user.last_login }}</td></tr>
+	  <tr><td><strong>Number of Transactions</strong></td><td> {{ num_transactions }}</td></tr>
+	  <tr><td><strong>Number of Balances</strong></td><td> {{ num_balances }}</td></tr>
+	</table>
   </section>
 
   <section id="account">
