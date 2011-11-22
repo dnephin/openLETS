@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
-from core import models
+from openlets.core import models
 
 def get_balance(persona, personb, currency):
 	"""Load a balance between two persons. 
@@ -26,14 +26,24 @@ def get_balance(persona, personb, currency):
 		).balance
 	)
 
-def get_balances(user, include_balanced=False):
+def get_balances(user, include_balanced=False, credited=None):
 	"""Get the list of balances for a user. Filter out any where the value is
 	back to 0.
 	"""
 	q = models.PersonBalance.objects.filter(person=user.person)
 	if not include_balanced:
 		q.exclude(balance__value=0)
+	if credited is not None:
+		q.filter(credited=credited)
 	return q
+
+def get_balances_many(persons, currency, credited):
+	"""Return a map of person -> balances."""
+	return models.PersonBalance.objects.filter(
+		person__in=persons,
+		credited=credited,
+		balance__currency=currency
+	)
 
 def get_pending_trans_for_user(user):
 	"""Get pending transactions for a user which were
