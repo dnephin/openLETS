@@ -34,16 +34,21 @@ class BalanceResolver(object):
 		if not persons:
 			return None
 
-		credited = not target_balance.credited
+		credited = target_balance.credited
 		target_person = target_balance.person
 		currency = target_balance.balance.currency
 
 		mirrored_balances = db.get_balances_many(persons, currency, credited)
+		self.log.debug("  Found %s mirrored balances (%s)" % (
+			len(mirrored_balances),
+			set(pb.other_person for pb in mirrored_balances)
+		))
+		# TODO: chose the highest value balance
 		for mirrored_balance in mirrored_balances:
-			if target_person == mirrored_balance.other_person:
+			if target_person.id == mirrored_balance.other_person.id:
 				return [mirrored_balance]
 
-		mirrored_persons = set(pb.other_person for pb in mirorred_balances)
+		mirrored_persons = set(pb.other_person for pb in mirrored_balances)
 		balance_chain = self.get_balance_chain(
 			mirrored_persons, 
 			target_balance, 
@@ -56,12 +61,13 @@ class BalanceResolver(object):
 		# balance
 		link_person = balance_chain[-1].person
 		for mirrored_balance in mirrored_balances:
-			if mirrored_balance.person == link_person:
+			if mirrored_balance.other_person.id == link_person.id:
 				balance_chain.append(mirrored_balance)
 				return balance_chain
 
 	def resolve_balances(self, balances):
 		for balance in balances:
+			self.log.debug(" Attempting to resolving balance %s" % balance)
 			balance_chain = self.get_balance_chain(
 				[balance.other_person], 
 				balance
@@ -79,7 +85,8 @@ class BalanceResolver(object):
 		"""
 		users = models.User.objects.filter(is_active=True).all()
 		for user in users:
-			balances = db.get_balances(user)
+			self.log.debug("Resolving balances for %s" % user)
+			balances = db.get_balances(user, credited=False)
 			self.resolve_balances(balances)
 		
 	def start(self):

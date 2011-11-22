@@ -32,9 +32,9 @@ def get_balances(user, include_balanced=False, credited=None):
 	"""
 	q = models.PersonBalance.objects.filter(person=user.person)
 	if not include_balanced:
-		q.exclude(balance__value=0)
+		q = q.exclude(balance__value=0)
 	if credited is not None:
-		q.filter(credited=credited)
+		q = q.filter(credited=credited)
 	return q
 
 def get_balances_many(persons, currency, credited):
