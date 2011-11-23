@@ -37,13 +37,16 @@ def get_balances(user, include_balanced=False, credited=None):
 		q = q.filter(credited=credited)
 	return q
 
-def get_balances_many(persons, currency, credited):
+def get_balances_many(persons, currency, credited, include_balanced=False):
 	"""Return a map of person -> balances."""
-	return models.PersonBalance.objects.filter(
+	q = models.PersonBalance.objects.filter(
 		person__in=persons,
 		credited=credited,
 		balance__currency=currency
 	)
+	if not include_balanced:
+		q = q.exclude(balance__value=0)
+	return q
 
 def get_pending_trans_for_user(user):
 	"""Get pending transactions for a user which were

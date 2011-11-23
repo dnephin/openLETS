@@ -298,6 +298,11 @@ class TransactionRecord(DictableModel, CurrencyMixin, m.Model):
 			raise ValueError("No transaction yet.")
 		return self.transaction.transaction_records.exclude(id=self.id).get()
 
+	@property
+	def time_confirmed(self):
+		return self.transaction.time_confirmed
+
+
 	def export_data(self):
 		time_confirmed = None
 		if self.status == 'confirmed':
@@ -346,7 +351,6 @@ class Resolution(CurrencyMixin, m.Model):
 		blank=True,
 		related_name='resolutions'
 	)
-	action_id = m.IntegerField()
 	time_confirmed = m.DateTimeField(auto_now_add=True)
 
 	def __unicode__(self):
@@ -385,6 +389,8 @@ class PersonResolution(m.Model):
 		"""Get the person on the other side of this balance."""
 		return self.resolution.persons.exclude(id=self.person.id).get()
 
+	target_person = other_person
+
 	@property
 	def relative_value(self):
 		value = self.resolution.value
@@ -400,10 +406,18 @@ class PersonResolution(m.Model):
 	def transaction_time(self):
 		return self.resolution.time_confirmed
 
+	time_confirmed = transaction_time
+
+	status = 'resolved'
+
 	@property
 	def transaction_type(self):
 		"""The type of transaction relative to this person."""
 		return 'charge' if self.credited else 'payment'
+
+	@property
+	def value_repr(self):
+		return self.resolution.value_repr
 
 	def export_data(self):
 		return {
